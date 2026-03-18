@@ -1,348 +1,609 @@
 # ============================================================
 #  QUANTIS - RESEARCH DIGEST GENERATOR
-#  This script reads PDFs from the pdfs/ folder and builds index.html
 #  How to run: python generate.py
+#  What it does: reads PDFs from pdfs/ folder, builds index.html
+#  Extracts: AI summary + key points + tables from each PDF
 # ============================================================
 
-# These are the libraries we need.
-# fitz = reads PDF files
-# os = reads folders and file paths
-# json = saves which PDFs have already been processed
-# nltk + sumy = extracts key points from text
-# datetime = gets today's date
 import fitz
+import pdfplumber
 import os
 import json
-import nltk
-from sumy.parsers.plaintext import PlaintextParser
-from sumy.nlp.tokenizers import Tokenizer
-from sumy.summarizers.lsa import LsaSummarizer
+import yfinance as yf
+from google import genai
 from datetime import datetime
 
-# These language tools are needed for summarization to work.
-# quiet=True means they won't print anything when downloading.
-nltk.download('punkt', quiet=True)
-nltk.download('punkt_tab', quiet=True)
+
+# ============================================================
+#  *** PUT YOUR GEMINI API KEY HERE ***
+# ============================================================
+
+GEMINI_API_KEY = "AIzaSyD1CyMsVFtbl6o6jAB-TGhpRTD-EcWZt2Y"
 
 
 # ============================================================
 #  SECTION 1: PDF TEXT EXTRACTOR
-#  DO NOT TOUCH — this is the core PDF reading logic
-#  It opens a PDF, reads every page, and returns all text
+#  DO NOT TOUCH — opens PDF and returns all text
 # ============================================================
 
 def pdf_se_text_nikalo(filepath):
-    doc = fitz.open(filepath)  # Open the PDF file
+    doc = fitz.open(filepath)
     poora_text = ""
-    for page in doc:           # Loop through every page
-        poora_text += page.get_text()  # Extract text from each page
+    for page in doc:
+        poora_text += page.get_text()
     doc.close()
-    return poora_text          # Return all the collected text
+    return poora_text
+
+
+# ============================================================
+#  SECTION 1B: PDF TITLE EXTRACTOR
+#  Picks the first meaningful line from PDF as the report title
+#  Falls back to cleaned filename if nothing good found
+# ============================================================
+
+TITLE_SKIP_WORDS = [
+    'bloomberg', 'reuters', 'research is also available', 'nuvama',
+    'systematix', 'edelweiss', 'motilal', 'kotak', 'hdfc securities',
+    'icici', 'axis securities', 'disclaimer', 'confidential',
+    'page', 'www', 'http', '@', 'tel:', 'fax:', 'mob:', 'phone:',
+    'sebi', 'registered', 'member', 'bse', 'nse', 'india limited',
+    'private limited', 'pvt ltd', 'kindly', 'please note',
+    'unsubscribe', 'click here', 'terms', 'conditions',
+    'investors are advised', 'refer disclosures', 'institutional equities',
+    'pl capital', 'hsie', 'research report', 'equity research',
+    'all rights reserved', 'copyright', 'for private circulation',
+    'not for public', 'important disclosures',
+]
+
+def title_nikalo(text, filename):
+    lines = text.split('\n')
+    for line in lines:
+        line = line.strip()
+        if len(line) < 25:
+            continue
+        if line[0].isdigit() and len(line) < 40:
+            continue
+        if any(word in line.lower() for word in TITLE_SKIP_WORDS):
+            continue
+        # Skip lines that are mostly punctuation or numbers
+        alpha_count = sum(1 for c in line if c.isalpha())
+        if alpha_count < 15:
+            continue
+        return line[:130]
+    # Fallback: clean filename
+    name = filename.replace('.pdf', '').replace('_', ' ').replace('+', ' ').replace('-', ' ')
+    return name.title()
+
+
+# ============================================================
+#  SECTION 1C: SECTOR AUTO-DETECT
+#  Detects sector from filename and first 1000 chars of content
+# ============================================================
+
+SECTOR_KEYWORDS = {
+    'INFLATION':   ['wpi', 'cpi', 'inflation', 'price index', 'iip'],
+    'ENERGY':      ['oil', 'gas', 'crude', 'opec', 'coal', 'renewable', 'ntpc', 'power', 'energy', 'strait', 'petroleum', 'refin', 'ongc', 'bpcl', 'iocl'],
+    'BANKING':     ['bank', 'nbfc', 'rbi', 'credit', 'npa', 'deposit', 'loan', 'repo rate'],
+    'TECHNOLOGY':  ['it services', 'software', 'saas', 'cloud', 'semiconductor', 'infosys', 'wipro', 'tcs', 'hcl tech'],
+    'AUTO':        ['auto', 'vehicle', 'ev ', 'electric vehicle', 'passenger', 'two-wheeler', 'automobile', 'maruti', 'tata motors'],
+    'PHARMA':      ['pharma', 'drug', 'fda', 'clinical', 'api ', 'hospital', 'healthcare', 'biotech'],
+    'FMCG':        ['fmcg', 'consumer goods', 'food', 'beverage', 'rural demand', 'volume growth', 'hindustan unilever'],
+    'REAL ESTATE': ['real estate', 'realty', 'housing', 'property', 'construction', 'cement'],
+    'METALS':      ['steel', 'metal', 'aluminium', 'copper', 'iron ore', 'zinc'],
+    'TELECOM':     ['telecom', 'arpu', 'subscriber', '5g', 'jio', 'airtel', 'spectrum'],
+    'MARKETS':     ['nifty', 'sensex', 'equity', 'market outlook', 'index', 'valuation', 'fii', 'dii'],
+    'ECONOMY':     ['gdp', 'fiscal', 'budget', 'trade deficit', 'current account', 'forex', 'rbi policy'],
+    'GEOPOLITICS': ['geopolit', 'war', 'conflict', 'iran', 'israel', 'ukraine', 'russia', 'strategic'],
+}
+
+def sector_detect(text, filename):
+    check_text = (filename + " " + text[:2000]).lower()
+    for sector, keywords in SECTOR_KEYWORDS.items():
+        for kw in keywords:
+            if kw in check_text:
+                return sector
+    return 'RESEARCH'
+
+
+# ============================================================
+#  SECTION 1D: PDF TABLE EXTRACTOR
+#  Uses pdfplumber to find tables inside PDFs
+# ============================================================
+
+def tables_nikalo(filepath, max_tables=2, min_rows=2, min_cols=2):
+    extracted_tables = []
+    try:
+        with pdfplumber.open(filepath) as pdf:
+            for page in pdf.pages:
+                tables = page.extract_tables()
+                for table in tables:
+                    if not table:
+                        continue
+                    clean_table = []
+                    for row in table:
+                        clean_row = [str(cell).strip() if cell else "" for cell in row]
+                        if any(cell for cell in clean_row):
+                            clean_table.append(clean_row)
+                    if len(clean_table) < min_rows:
+                        continue
+                    if len(clean_table[0]) < min_cols:
+                        continue
+                    extracted_tables.append(clean_table)
+                    if len(extracted_tables) >= max_tables:
+                        return extracted_tables
+    except Exception as e:
+        print(f"  Table extraction error: {e}")
+    return extracted_tables
 
 
 # ============================================================
 #  SECTION 2: FILTER WORDS LIST
-#  If any unwanted word appears in a bullet point, that line is skipped.
-#  ADD new words here if you see junk text appearing in your output.
-#  Example: if "proprietary" keeps appearing, add 'proprietary' to this list.
+#  Lines containing these words are removed from key points
 # ============================================================
 
 FILTER_WORDS = [
-    'disclaimer',               # Legal disclaimer text
-    'views expressed',          # Author opinion disclaimers
-    'do not necessarily',       # Standard legal phrase
-    'reflect the views',        # Standard legal phrase
-    'personal views',           # Author note
-    'author',                   # Author name lines
-    'nothing contained',        # Legal boilerplate
-    'shall constitute',         # Legal boilerplate
-    'solicitation',             # Legal boilerplate
-    'offer to sell',            # Legal boilerplate
-    'offer to purchase',        # Legal boilerplate
-    'securities',               # Legal boilerplate
-    'invitation or solicitation',  # Legal boilerplate
-    'any entity',               # Legal boilerplate
-    'accuracy',                 # Legal accuracy disclaimer
-    'completeness',             # Legal completeness disclaimer
-    'reliability',              # Legal reliability disclaimer
-    'representation'            # Legal representation disclaimer
+    'disclaimer', 'views expressed', 'do not necessarily', 'reflect the views',
+    'personal views', 'author', 'nothing contained', 'shall constitute',
+    'solicitation', 'offer to sell', 'offer to purchase', 'securities',
+    'invitation or solicitation', 'any entity', 'accuracy', 'completeness',
+    'reliability', 'representation', 'also available', 'bloomberg', 'reuters',
+    'factset', 'research is also', 'nuvama research', 'systematix', 'edelweiss',
+    'motilal oswal', 'kotak securities', 'hdfc securities', 'sebi registered',
+    'unsubscribe', 'click here', 'kindly note', 'tel:', 'mob:', 'fax:',
+    'all rights reserved', 'copyright', 'terms of use', 'privacy policy',
 ]
 
 
 # ============================================================
-#  SECTION 3: KEY POINTS EXTRACTOR
-#  This function cleans the PDF text and picks the most important sentences.
-#
-#  TO CUSTOMIZE:
-#  kitne_points = how many bullet points per report (default: 5)
-#  min_line_length = lines shorter than this are ignored (removes headings/names)
-#  max_line_length = lines longer than this are ignored (removes run-on sentences)
+#  SECTION 3: GEMINI AI SUMMARIZATION
+#  Sends PDF text to Gemini API and returns a clean summary
 # ============================================================
 
-def key_points_nikalo(text, kitne_points=5):
-    min_line_length = 60    # Lines shorter than 60 chars are skipped (e.g. "Page 1", author names)
-    max_line_length = 200   # Lines longer than 200 chars are skipped (too complex to show as a point)
+def gemini_summary(text, filename):
+    try:
+        client = genai.Client(api_key=GEMINI_API_KEY)
+        prompt = f"""You are a Bloomberg financial analyst. Read this research report excerpt and write a crisp, professional 2-3 sentence summary.
+
+Rules:
+- Focus on the single most important finding or data point
+- Mention specific numbers if available (%, Rs, basis points)
+- End with the key implication for markets or investors
+- Do NOT start with "This report..." or "The report..."
+- Write as if it's a Bloomberg terminal headline summary
+- Maximum 60 words total
+
+Report filename: {filename}
+Report text:
+{text[:4000]}
+
+Summary:"""
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=prompt
+        )
+        return response.text.strip()
+    except Exception as e:
+        print(f"  Gemini API error: {e}")
+        return None
+
+
+# ============================================================
+#  SECTION 3B: KEY POINTS EXTRACTOR (fallback if Gemini fails)
+# ============================================================
+
+def key_points_nikalo(text, kitne_points=4):
+    min_line_length = 60
+    max_line_length = 200
 
     clean_lines = []
     for line in text.split('\n'):
-        line = line.strip()  # Remove extra spaces from start and end
-
-        # Skip lines with email addresses
+        line = line.strip()
         if '@' in line:
             continue
-
-        # Skip lines that are too short (headings, page numbers, names)
-        if len(line) < min_line_length:
+        if len(line) < min_line_length or len(line) > max_line_length:
             continue
-
-        # Skip lines that are too long (run-on sentences)
-        if len(line) > max_line_length:
-            continue
-
-        # Skip lines containing any filter words defined in Section 2
         if any(word in line.lower() for word in FILTER_WORDS):
             continue
+        alpha_count = sum(1 for c in line if c.isalpha())
+        if alpha_count < 30:
+            continue
+        clean_lines.append(line)
 
-        clean_lines.append(line)  # If line passes all checks, keep it
+    # Return top lines as bullet points (simple extraction)
+    seen = set()
+    unique_lines = []
+    for line in clean_lines:
+        key = line[:40].lower()
+        if key not in seen:
+            seen.add(key)
+            unique_lines.append(line)
+        if len(unique_lines) >= kitne_points:
+            break
 
-    # Join all clean lines into one block of text
-    clean_text = ' '.join(clean_lines)
-
-    # Use LSA summarizer to pick the most important sentences
-    parser = PlaintextParser.from_string(clean_text, Tokenizer("english"))
-    summarizer = LsaSummarizer()
-    summary = summarizer(parser.document, kitne_points)
-
-    return [str(sentence) for sentence in summary]  # Return as a list of strings
+    return unique_lines if unique_lines else ["Report processed. Open PDF for full details."]
 
 
 # ============================================================
-#  SECTION 4: WEBSITE DESIGN (CSS)
-#  ONLY edit this section to change colors, fonts, or layout.
-#
-#  CURRENT SETTINGS:
-#  - Background: Black (#000000)
-#  - Main text: Orange (#ff6600) — Bloomberg Terminal style
-#  - Title heading: White (#ffffff)
-#  - Font: IBM Plex Mono (clean monospace, professional look)
-#  - Cards: No box border, separated by a thin brown bottom line
-#
-#  HOW TO CHANGE COLORS:
-#  Replace any color code like #ff6600 with your desired color.
-#  Use Google "color picker" to find color codes.
-#
-#  HOW TO CHANGE FONT:
-#  Replace 'IBM Plex Mono' with any Google Font name.
-#  Also update the @import URL at the top of this section.
+#  SECTION 4: LIVE TICKER DATA FROM YFINANCE
+#  Fetches real-time market data when you run generate.py
+# ============================================================
+
+def fetch_ticker_data():
+    symbols = {
+        "NIFTY 50":   "^NSEI",
+        "SENSEX":     "^BSESN",
+        "BANK NIFTY": "^NSEBANK",
+        "S&P 500":    "^GSPC",
+        "NASDAQ":     "^IXIC",
+        "DOW JONES":  "^DJI",
+        "GOLD":       "GC=F",
+        "CRUDE OIL":  "CL=F",
+        "USD/INR":    "INR=X",
+    }
+
+    ticker_items = []
+    print("Fetching live market data...")
+
+    for name, symbol in symbols.items():
+        try:
+            ticker = yf.Ticker(symbol)
+            hist = ticker.history(period="2d")
+            if hist.empty or len(hist) < 1:
+                raise ValueError("No data")
+
+            current = hist['Close'].iloc[-1]
+            prev    = hist['Close'].iloc[-2] if len(hist) >= 2 else current
+            change  = ((current - prev) / prev) * 100
+            arrow   = "▲" if change >= 0 else "▼"
+            sign    = "+" if change >= 0 else ""
+
+            # Format values
+            if name in ["GOLD", "CRUDE OIL"]:
+                val_str = f"${current:,.2f}"
+            elif name == "USD/INR":
+                val_str = f"₹{current:.2f}"
+            elif name in ["NIFTY 50", "SENSEX", "BANK NIFTY"]:
+                val_str = f"{current:,.2f}"
+            else:
+                val_str = f"{current:,.2f}"
+
+            ticker_items.append(
+                f"{name} &nbsp; {val_str} &nbsp; {arrow} {sign}{change:.2f}%"
+            )
+            print(f"  {name}: {val_str} {arrow} {sign}{change:.2f}%")
+
+        except Exception as e:
+            print(f"  Could not fetch {name} ({symbol}): {e}")
+            # Fallback hardcoded value
+            ticker_items.append(f"{name} &nbsp; -- &nbsp; N/A")
+
+    return ticker_items
+
+
+# ============================================================
+#  SECTION 5: WEBSITE TITLE
+# ============================================================
+
+WEBSITE_TITLE = "Quantis"
+
+
+# ============================================================
+#  SECTION 6: WEBSITE DESIGN (CSS)
+#  - Ticker bar: WHITE background, black text
+#  - SAVED button: white background, black text
+#  - Header: black background, orange border
+#  - Title: bold white, date left, orange sector tag right
 # ============================================================
 
 WEBSITE_CSS = """
-    /* Import fonts from Google Fonts — IBM Plex Mono is the main font */
     @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&display=swap');
 
-    /* ---- GLOBAL PAGE SETTINGS ---- */
-    /* Controls the overall page background, font, and text color */
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
     body {
-        font-family: 'IBM Plex Mono', monospace;  /* Main font for all text */
-        max-width: 960px;          /* Maximum page width — keeps content readable */
-        margin: 40px auto;         /* Centers the content on the page */
-        padding: 0 20px;           /* Left-right padding so text doesn't touch screen edge */
-        background: #000000;       /* PAGE BACKGROUND COLOR — change this */
-        color: #ff6600;            /* DEFAULT TEXT COLOR (orange) — change this */
-    }
-
-    /* ---- MAIN PAGE HEADING (QUANTIS title at top) ---- */
-    /* This styles the big "Quantis" title at the top of the page */
-    h1 {
-        font-size: 2em;            /* Title size — increase for bigger title */
         font-family: 'IBM Plex Mono', monospace;
-        color: #ffffff;            /* TITLE COLOR — currently white */
-        border-bottom: 1px solid #ff6600;  /* Orange line under the title */
-        padding-bottom: 10px;
-        letter-spacing: 2px;       /* Spacing between letters */
-        font-weight: 700;          /* Bold */
-        text-transform: none;      /* Keeps original capitalization */
+        background: #000000;
+        color: #ffffff;
+        padding-bottom: 60px;
     }
 
-    /* ---- REPORT CARD (each PDF is shown as a card) ---- */
-    /* Each report is separated by a thin brown bottom border — no box */
-    .report-card {
-        background: #000000;       /* Card background — matches page */
-        border: none;              /* No box border */
-        border-bottom: 1px solid #3a1a00;  /* THIN BROWN SEPARATOR LINE — change color here */
-        padding: 20px 0;           /* Top-bottom spacing inside each card */
-        margin: 10px 0;            /* Space between cards */
-    }
-
-    /* ---- REPORT TITLE (name of the PDF shown in each card) ---- */
-    .report-card h2 {
-        font-size: 0.9em;
-        color: #ffaa00;            /* REPORT TITLE COLOR — currently yellow-orange */
-        text-transform: uppercase; /* Makes title ALL CAPS */
-        letter-spacing: 2px;
-        margin-bottom: 4px;
-        font-weight: 700;
-    }
-
-    /* ---- DATE LINE (shows when the report was processed) ---- */
-    .date {
-        font-size: 0.75em;
-        color: #884400;            /* DATE TEXT COLOR — currently dark orange */
-        margin-bottom: 12px;
-    }
-
-    /* ---- BULLET POINTS LIST ---- */
-    ul {
-        line-height: 1.9;          /* Line spacing between bullet points */
-        padding-left: 20px;
-    }
-
-    /* ---- INDIVIDUAL BULLET POINT ---- */
-    li {
-        margin-bottom: 6px;
-        color: #ff6600;            /* BULLET TEXT COLOR — change this */
-        border-bottom: 1px solid #1a0a00;  /* Very subtle dark line under each point */
-        padding-bottom: 5px;
-    }
-
-    /* The bullet dot color */
-    li::marker {
-        color: #ffaa00;            /* BULLET DOT COLOR — change this */
-    }
-
-    /* ---- CARD FOOTER (bookmark icon + read more button) ---- */
-    /* This is the bottom row of each card */
-    .card-footer {
+    /* ---- BLOOMBERG STYLE HEADER ---- */
+    #site-header {
+        background: #000000;
+        border-bottom: 2px solid #ff6600;
+        padding: 14px 24px;
         display: flex;
-        justify-content: space-between;  /* Bookmark on left, Read More on right */
         align-items: center;
-        margin-top: 12px;
-        padding-top: 8px;
-        border-top: 1px solid #1a0a00;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+        z-index: 100;
     }
 
-    /* ---- BOOKMARK TOGGLE BUTTON (top right corner of page) ---- */
-    /* This is the fixed button in the top-right that opens saved reports */
+    #site-logo {
+        font-size: 1.6em;
+        font-weight: 700;
+        color: #ffffff;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+    }
+
+    /* ---- SAVED BUTTON — WHITE THEME ---- */
     #bookmark-toggle {
-        position: fixed;           /* Stays in place even when scrolling */
-        top: 20px;
-        right: 20px;
-        background: none;
-        border: 1px solid #ff6600;
-        color: #ff6600;
+        background: #ffffff;
+        border: 1px solid #ffffff;
+        color: #000000;
         font-family: 'IBM Plex Mono', monospace;
         font-size: 0.75em;
-        padding: 6px 12px;
+        font-weight: 700;
+        padding: 6px 14px;
         cursor: pointer;
         letter-spacing: 2px;
-        z-index: 1000;             /* Makes sure it stays above all other elements */
     }
 
-    /* ---- BOOKMARK DROPDOWN PANEL (opens when SAVED button is clicked) ---- */
+    #bookmark-toggle:hover {
+        background: #eeeeee;
+    }
+
+    /* ---- TICKER BAR — WHITE THEME ---- */
+    #ticker-bar {
+        background: #ffffff;
+        color: #000000;
+        font-size: 0.75em;
+        font-weight: 700;
+        padding: 5px 0;
+        overflow: hidden;
+        white-space: nowrap;
+        border-bottom: 1px solid #dddddd;
+    }
+
+    #ticker-content {
+        display: inline-block;
+        animation: scroll-ticker 90s linear infinite;
+        padding-left: 100%;
+    }
+
+    #ticker-content span {
+        margin-right: 60px;
+        letter-spacing: 1px;
+        color: #000000;
+    }
+
+    @keyframes scroll-ticker {
+        0%   { transform: translateX(0); }
+        100% { transform: translateX(-100%); }
+    }
+
+    /* ---- MAIN CONTENT AREA ---- */
+    #main-content {
+        max-width: 960px;
+        margin: 30px auto;
+        padding: 0 24px;
+    }
+
+    /* ---- REPORT CARD ---- */
+    .report-card {
+        background: #000000;
+        border: none;
+        border-bottom: 1px solid #222222;
+        padding: 24px 0;
+        margin: 0;
+    }
+
+    /* ---- REPORT TITLE ---- */
+    .report-card h2 {
+        font-size: 1.15em;
+        color: #ffffff;
+        text-transform: none;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+        font-weight: 700;
+        line-height: 1.4;
+    }
+
+    /* ---- TITLE META ROW: date left, sector tag right ---- */
+    .title-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 14px;
+    }
+
+    .date {
+        font-size: 0.72em;
+        color: #888888;
+        letter-spacing: 1px;
+    }
+
+    .sector-tag {
+        font-size: 0.68em;
+        font-weight: 700;
+        color: #000000;
+        background: #ff6600;
+        padding: 3px 10px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+    }
+
+    /* ---- AI SUMMARY BOX ---- */
+    .ai-summary {
+        background: #0a0a0a;
+        border-left: 3px solid #ff6600;
+        padding: 10px 14px;
+        margin-bottom: 14px;
+        font-size: 0.83em;
+        color: #cccccc;
+        line-height: 1.7;
+        font-style: italic;
+    }
+
+    /* ---- BULLET POINTS ---- */
+    ul {
+        line-height: 1.8;
+        padding-left: 18px;
+    }
+
+    li {
+        margin-bottom: 8px;
+        color: #dddddd;
+        font-size: 0.88em;
+        padding-bottom: 6px;
+        border-bottom: 1px solid #111111;
+    }
+
+    li::marker {
+        color: #ff6600;
+    }
+
+    /* ---- TABLE STYLES ---- */
+    .pdf-table-wrap {
+        margin: 16px 0;
+        overflow-x: auto;
+    }
+
+    .pdf-table-wrap p {
+        font-size: 0.72em;
+        color: #666666;
+        margin-bottom: 6px;
+        letter-spacing: 1px;
+    }
+
+    .pdf-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.78em;
+        color: #cccccc;
+    }
+
+    .pdf-table tr:first-child td {
+        background: #1a0a00;
+        color: #ff6600;
+        font-weight: 700;
+        padding: 8px 10px;
+        border-bottom: 1px solid #ff6600;
+        text-align: left;
+        letter-spacing: 0.5px;
+    }
+
+    .pdf-table tr:not(:first-child) td {
+        padding: 7px 10px;
+        border-bottom: 1px solid #111111;
+        text-align: left;
+        vertical-align: top;
+    }
+
+    .pdf-table tr:nth-child(even) td {
+        background: #0a0a0a;
+    }
+
+    /* ---- CARD FOOTER ---- */
+    .card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 14px;
+        padding-top: 8px;
+    }
+
+    /* ---- BOOKMARK PANEL ---- */
     #bookmark-panel {
-        position: fixed;           /* Stays in place when scrolling */
-        top: 50px;
+        position: fixed;
+        top: 90px;
         right: 20px;
-        width: 260px;
-        max-height: 400px;         /* Panel won't grow taller than this */
-        background: #0a0500;       /* Dark panel background */
-        border: 1px solid #ff6600;
+        width: 280px;
+        max-height: 420px;
+        background: #0d0d0d;
+        border: 1px solid #333333;
         padding: 16px;
-        overflow-y: auto;          /* Scroll inside panel if too many bookmarks */
-        display: none;             /* Hidden by default, shown when button clicked */
+        overflow-y: auto;
+        display: none;
         z-index: 999;
+        border-radius: 4px;
     }
 
-    /* Panel heading — "SAVED REPORTS" */
     #bookmark-panel h3 {
-        color: #ffaa00;
+        color: #ff6600;
         letter-spacing: 3px;
         font-size: 0.75em;
-        border-bottom: 1px solid #ff6600;
+        border-bottom: 1px solid #333333;
         padding-bottom: 8px;
         margin-bottom: 10px;
     }
 
-    /* Each saved report item in the panel */
     #bookmark-list li {
-        font-size: 0.75em;
-        line-height: 1.6;
-        color: #ff6600;
-        border-bottom: 1px solid #1a0a00;
-        padding: 6px 0;
+        font-size: 0.78em;
+        line-height: 1.5;
+        color: #cccccc;
+        border-bottom: 1px solid #1a1a1a;
+        padding: 8px 0;
+        cursor: pointer;
+        letter-spacing: 0.3px;
+        border: none;
+        margin-bottom: 0;
+    }
+
+    #bookmark-list li:hover {
+        color: #ffffff;
     }
 """
 
 
 # ============================================================
-#  SECTION 5: WEBSITE TITLE AND HEADING
-#  WEBSITE_TITLE = text shown in the browser tab
-#  WEBSITE_HEADING = big title shown at top of the page
-#  Change both to rename your website.
-# ============================================================
-
-WEBSITE_TITLE = "Quantis"       # Shown in browser tab
-WEBSITE_HEADING = "Quantis"     # Shown at top of page
-
-
-# ============================================================
-#  SECTION 5B: JAVASCRIPT — BOOKMARK + READ MORE LOGIC
-#  DO NOT TOUCH — this handles all interactive features:
-#  1. Saving/removing bookmarks using browser's local storage
-#  2. Showing/hiding the bookmark panel
-#  3. Toggling the Read More / Read Less section on each card
+#  SECTION 7: JAVASCRIPT — BOOKMARKS + READ MORE
 # ============================================================
 
 BOOKMARK_JS = """
-    // Adds or removes a report from saved bookmarks
-    // Uses localStorage so bookmarks survive browser restarts
     function toggleBookmark(btn, text) {
         let bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '[]');
         const index = bookmarks.indexOf(text);
-
         if (index === -1) {
-            bookmarks.push(text);           // Add to bookmarks
-            btn.style.color = '#cc4400';    // Turn bookmark icon dark orange
+            bookmarks.push(text);
+            btn.style.color = '#ff6600';
             btn.title = 'Saved!';
         } else {
-            bookmarks.splice(index, 1);     // Remove from bookmarks
-            btn.style.color = '#333';       // Turn bookmark icon grey
+            bookmarks.splice(index, 1);
+            btn.style.color = '#333';
             btn.title = 'Bookmark this report';
         }
         localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
         showBookmarks();
     }
 
-    // Renders the bookmark list inside the panel
-    // Also updates the SAVED button to show count
     function showBookmarks() {
         let bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '[]');
-        const panel = document.getElementById('bookmark-panel');
         const list = document.getElementById('bookmark-list');
         const btn = document.getElementById('bookmark-toggle');
-
-        // If no bookmarks, show a placeholder message
         list.innerHTML = bookmarks.length === 0
-            ? '<li style="color:#884400">No saved reports</li>'
+            ? '<li style="color:#555; cursor:default; padding:8px 0;">No saved reports</li>'
             : bookmarks.map((b, i) => `
-                <li>${b}
-                    <span onclick="removeBookmark(${i})"
-                          style="cursor:pointer; color:#884400; float:right;">[X]</span>
+                <li onclick="scrollToReport('${b}')" title="Go to report">
+                    ${b}
+                    <span onclick="event.stopPropagation(); removeBookmark(${i})"
+                          style="cursor:pointer; color:#555; float:right; margin-left:8px;">[X]</span>
                 </li>`).join('');
-
-        // Update button label to show count of saved reports
-        btn.innerHTML = bookmarks.length > 0
-            ? 'SAVED [' + bookmarks.length + ']'
-            : 'SAVED';
+        btn.innerHTML = bookmarks.length > 0 ? 'SAVED [' + bookmarks.length + ']' : 'SAVED';
     }
 
-    // Opens or closes the bookmark panel when SAVED button is clicked
+    function scrollToReport(title) {
+        const cards = document.querySelectorAll('.report-card');
+        cards.forEach(card => {
+            const h2 = card.querySelector('h2');
+            if (h2 && h2.innerText.toLowerCase().includes(title.toLowerCase().slice(0, 20))) {
+                card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                togglePanel();
+            }
+        });
+    }
+
     function togglePanel() {
         const panel = document.getElementById('bookmark-panel');
         panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
     }
 
-    // Removes a specific bookmark by its index in the array
     function removeBookmark(index) {
         let bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '[]');
         bookmarks.splice(index, 1);
@@ -351,28 +612,25 @@ BOOKMARK_JS = """
         markSavedButtons();
     }
 
-    // On page load, highlights bookmark icons that are already saved
     function markSavedButtons() {
         let bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '[]');
         document.querySelectorAll('.bookmark-btn').forEach(btn => {
             const text = btn.getAttribute('data-text');
-            btn.style.color = bookmarks.includes(text) ? '#cc4400' : '#333';
+            btn.style.color = bookmarks.includes(text) ? '#ff6600' : '#333';
         });
     }
 
-    // Shows/hides the extra bullet points in a card (Read More / Read Less)
     function toggleMore(i, btn) {
         const section = document.getElementById('more-' + i);
         if (section.style.display === 'none') {
             section.style.display = 'block';
-            btn.innerHTML = 'READ LESS &#9650;';   // Arrow pointing up
+            btn.innerHTML = 'READ LESS &#9650;';
         } else {
             section.style.display = 'none';
-            btn.innerHTML = 'READ MORE &#9660;';   // Arrow pointing down
+            btn.innerHTML = 'READ MORE &#9660;';
         }
     }
 
-    // Runs when the page first loads
     window.onload = function() {
         showBookmarks();
         markSavedButtons();
@@ -381,61 +639,90 @@ BOOKMARK_JS = """
 
 
 # ============================================================
-#  SECTION 6: HTML PAGE BUILDER
-#  DO NOT TOUCH — assembles all sections into the final HTML page
-#
-#  CARD LAYOUT (for each report):
-#  [Report Title]
-#  [Processed date]
-#  - Point 1 (always visible)
-#  - Point 2 (always visible)
-#  [Hidden points, shown on READ MORE click]
-#  [Bookmark icon (left)]     [READ MORE button (right)]
+#  SECTION 8: HTML TABLE BUILDER
 # ============================================================
 
-def website_banao(reports_data):
-    aaj_ki_tarikh = datetime.today().strftime('%d %B %Y')  # Example: 18 March 2026
+def table_to_html(table):
+    rows_html = ""
+    for row in table:
+        cells = "".join(f"<td>{cell}</td>" for cell in row)
+        rows_html += f"<tr>{cells}</tr>\n"
+    return f"""
+    <div class="pdf-table-wrap">
+        <p>TABLE FROM REPORT</p>
+        <table class="pdf-table">
+            {rows_html}
+        </table>
+    </div>"""
 
-    all_cards = ""  # Will hold all the report card HTML
+
+# ============================================================
+#  SECTION 9: HTML PAGE BUILDER
+#  Assembles everything into the final website
+#
+#  CARD LAYOUT:
+#  [Report Title — bold white]
+#  [Published: date left]  [SECTOR TAG right — orange]
+#  [AI Summary box — italic, left orange border]
+#  - Bullet point 1 (always visible)
+#  - Bullet point 2 (always visible)
+#  [Tables from PDF]
+#  [Hidden points on READ MORE]
+#  [Bookmark icon left]  [READ MORE right]
+# ============================================================
+
+def website_banao(reports_data, ticker_items):
+    aaj_ki_tarikh = datetime.today().strftime('%d %B %Y')
+    ticker_html = "".join(f'<span>{item}</span>' for item in ticker_items)
+
+    all_cards = ""
 
     for i, report in enumerate(reports_data):
-        # Split points: first 2 are always visible, rest are hidden
         visible_points = report['points'][:2]
         hidden_points = report['points'][2:]
 
-        # Build HTML list items for visible points
         visible_html = "".join(f"            <li>{p}</li>\n" for p in visible_points)
-
-        # Build HTML list items for hidden points
         hidden_html = "".join(f"            <li>{p}</li>\n" for p in hidden_points)
 
-        # Only create hidden section if there are extra points to show
+        # Tables HTML
+        tables_html = ""
+        if report.get('tables'):
+            for table in report['tables']:
+                tables_html += table_to_html(table)
+
+        # Hidden section
         hidden_section = ""
         if hidden_points:
             hidden_section = f"""
-        <ul id="more-{i}" style="display:none; margin-top:0; padding-left:20px;">
+        <ul id="more-{i}" style="display:none; padding-left:18px; margin-top:0;">
 {hidden_html}        </ul>"""
 
-        # Safe version of title for use inside JavaScript (removes quotes)
-        safe_title = report['title'].replace("'", "").replace('"', '')
+        # AI Summary box
+        summary_html = ""
+        if report.get('summary'):
+            summary_html = f'<div class="ai-summary">{report["summary"]}</div>'
 
-        # Build the full card HTML for this report
+        safe_title = report['title'].replace("'", "").replace('"', '')
+        sector = report.get('sector', 'RESEARCH')
+
         all_cards += f"""
     <div class="report-card">
         <h2>{report['title']}</h2>
-        <div class="date">Processed on: {aaj_ki_tarikh}</div>
+        <div class="title-meta">
+            <span class="date">Published: {aaj_ki_tarikh}</span>
+            <span class="sector-tag">{sector}</span>
+        </div>
 
-        <!-- Always visible bullet points (first 2) -->
-        <ul style="padding-left:20px;">
+        {summary_html}
+
+        <ul>
 {visible_html}        </ul>
 
-        <!-- Hidden bullet points (shown on READ MORE) -->
+        {tables_html}
+
         {hidden_section}
 
-        <!-- Footer: bookmark icon on left, read more button on right -->
         <div class="card-footer">
-
-            <!-- Bookmark ribbon icon — turns dark orange when saved -->
             <button class="bookmark-btn"
                     data-text="{safe_title}"
                     title="Bookmark this report"
@@ -447,22 +734,20 @@ def website_banao(reports_data):
                 </svg>
             </button>
 
-            <!-- Read More button — expands/collapses hidden points -->
             <button onclick="toggleMore({i}, this)"
                     style="background:none; border:none; cursor:pointer;
-                           color:#884400; font-family:inherit; font-size:0.8em;
+                           color:#666666; font-family:inherit; font-size:0.78em;
                            letter-spacing:2px; text-transform:uppercase;">
                 READ MORE &#9660;
             </button>
-
         </div>
     </div>"""
 
-    # Assemble the final HTML page using all the sections above
     html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{WEBSITE_TITLE}</title>
     <style>
 {WEBSITE_CSS}
@@ -470,22 +755,27 @@ def website_banao(reports_data):
 </head>
 <body>
 
-    <!-- Main page title -->
-    <h1>{WEBSITE_HEADING}</h1>
+    <div id="site-header">
+        <div id="site-logo">{WEBSITE_TITLE}</div>
+        <button id="bookmark-toggle" onclick="togglePanel()">SAVED</button>
+    </div>
 
-    <!-- Fixed button in top-right corner to open/close bookmark panel -->
-    <button id="bookmark-toggle" onclick="togglePanel()">SAVED</button>
+    <div id="ticker-bar">
+        <div id="ticker-content">
+            {ticker_html}
+            {ticker_html}
+        </div>
+    </div>
 
-    <!-- Bookmark dropdown panel (hidden by default) -->
+    <div id="main-content">
+        {all_cards}
+    </div>
+
     <div id="bookmark-panel">
         <h3>SAVED REPORTS</h3>
         <ul id="bookmark-list"></ul>
     </div>
 
-    <!-- All report cards go here -->
-    {all_cards}
-
-    <!-- JavaScript for bookmarks and read more -->
     <script>
 {BOOKMARK_JS}
     </script>
@@ -493,54 +783,74 @@ def website_banao(reports_data):
 </body>
 </html>"""
 
-    # Write the final HTML to index.html
     with open("index.html", "w", encoding="utf-8") as f:
         f.write(html)
     print("index.html updated successfully!")
 
 
 # ============================================================
-#  SECTION 7: MAIN PROCESS
-#  DO NOT TOUCH — this is the engine that runs everything
-#
-#  HOW IT WORKS:
-#  1. Reads processed.json to know which PDFs are already done
-#  2. Scans the pdfs/ folder for any new PDF files
-#  3. Processes only new PDFs (skips already processed ones)
-#  4. Saves updated list to processed.json
-#  5. Always rebuilds index.html (so design changes apply instantly)
+#  SECTION 10: MAIN PROCESS
+#  Scans pdfs/ folder, processes new PDFs only
+#  Newest reports appear FIRST
 # ============================================================
 
-pdf_folder = "pdfs"              # Folder where you drop your PDF files
-processed_file = "processed.json"  # File that tracks which PDFs are done
+pdf_folder = "pdfs"
+processed_file = "processed.json"
 
-# Load existing processed data if file exists
 if os.path.exists(processed_file):
     with open(processed_file, "r") as f:
         processed_data = json.load(f)
 else:
-    processed_data = {}  # Start fresh if no tracking file exists
+    processed_data = {}
 
-new_found = False  # Flag to track if any new PDFs were found
+new_found = False
 
-# Loop through all files in the pdfs/ folder
 for filename in os.listdir(pdf_folder):
     if filename.endswith(".pdf") and filename not in processed_data:
-        # This is a new PDF — process it
-        print(f"New PDF found, processing: {filename}")
+        print(f"\nNew PDF found, processing: {filename}")
         filepath = os.path.join(pdf_folder, filename)
-        text = pdf_se_text_nikalo(filepath)       # Extract text
-        points = key_points_nikalo(text)          # Get key points
-        title = filename.replace('.pdf', '').replace('_', ' ').title()  # Clean up filename as title
-        processed_data[filename] = {'title': title, 'points': points}
+
+        text   = pdf_se_text_nikalo(filepath)
+        title  = title_nikalo(text, filename)
+        sector = sector_detect(text, filename)
+        points = key_points_nikalo(text)
+        tables = tables_nikalo(filepath)
+
+        print(f"  Title:  {title[:80]}...")
+        print(f"  Sector: {sector}")
+
+        # Gemini AI Summary
+        print(f"  Generating AI summary...")
+        summary = gemini_summary(text, filename)
+        if summary:
+            print(f"  Summary: {summary[:80]}...")
+        else:
+            print(f"  Summary: Gemini unavailable, using bullet points only")
+
+        if tables:
+            print(f"  Found {len(tables)} table(s)")
+        else:
+            print(f"  No tables found")
+
+        processed_data[filename] = {
+            'title':   title,
+            'sector':  sector,
+            'summary': summary,
+            'points':  points,
+            'tables':  tables
+        }
         new_found = True
 
-# If new PDFs were found, save updated tracking file
 if new_found:
     with open(processed_file, "w") as f:
-        json.dump(processed_data, f)
-    print("New PDF(s) processed and saved!")
+        json.dump(processed_data, f, indent=2)
+    print("\nNew PDF(s) processed and saved!")
+else:
+    print("No new PDFs found.")
 
-# Always rebuild index.html so design/CSS changes apply without reprocessing PDFs
-website_banao(list(processed_data.values()))
+# Fetch live ticker data
+ticker_items = fetch_ticker_data()
+
+# Build website
+website_banao(list(reversed(list(processed_data.values()))), ticker_items)
 print("Website updated successfully!")
