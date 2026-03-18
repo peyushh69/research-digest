@@ -18,7 +18,7 @@ from datetime import datetime
 #  *** PUT YOUR GEMINI API KEY HERE ***
 # ============================================================
 
-GEMINI_API_KEY = "AIzaSyD1CyMsVFtbl6o6jAB-TGhpRTD-EcWZt2Y"
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 
 
 # ============================================================
