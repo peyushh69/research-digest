@@ -53,6 +53,8 @@ TITLE_SKIP_WORDS = [
     'pl capital', 'hsie', 'research report', 'equity research',
     'all rights reserved', 'copyright', 'for private circulation',
     'not for public', 'important disclosures',
+    'sector rating', 'overweight', 'underweight', 'outperform',
+    'rating:', 'coverage universe', 'price target',
 ]
 
 def title_nikalo(text, filename):
@@ -144,13 +146,21 @@ def tables_nikalo(filepath, max_tables=2, min_rows=2, min_cols=2):
 FILTER_WORDS = [
     'disclaimer', 'views expressed', 'do not necessarily', 'reflect the views',
     'personal views', 'author', 'nothing contained', 'shall constitute',
-    'solicitation', 'offer to sell', 'offer to purchase', 'securities',
+    'solicitation', 'offer to sell', 'offer to purchase',
     'invitation or solicitation', 'any entity', 'accuracy', 'completeness',
     'reliability', 'representation', 'also available', 'bloomberg', 'reuters',
     'factset', 'research is also', 'nuvama research', 'systematix', 'edelweiss',
     'motilal oswal', 'kotak securities', 'hdfc securities', 'sebi registered',
     'unsubscribe', 'click here', 'kindly note', 'tel:', 'mob:', 'fax:',
     'all rights reserved', 'copyright', 'terms of use', 'privacy policy',
+    # Promotional / non-insight content
+    'we hosted', 'webinar', 'founder', 'ceo', 'chief ', 'years of experience',
+    'ex-rystad', 'ex-shell', 'xanalyst', 'our analyst', 'we believe investors',
+    'we recommend', 'investors are advised',
+    # Stock tips / broker ratings
+    'buy rating', 'sell rating', 'hold rating', 'strong buy', 'target price',
+    'price target', 'accumulate', 'sector rating', 'overweight', 'underweight',
+    'outperform', 'underperform', 'coverage universe',
 ]
 
 
@@ -162,21 +172,24 @@ FILTER_WORDS = [
 def gemini_summary(text, filename):
     try:
         client = genai.Client(api_key=GEMINI_API_KEY)
-        prompt = f"""You are a Bloomberg financial analyst. Read this research report excerpt and write a crisp, professional 2-3 sentence summary.
+        prompt = f"""You are a financial journalist writing for an economics and markets intelligence platform — NOT a broker or stock advisor.
 
-Rules:
-- Focus on the single most important finding or data point
-- Mention specific numbers if available (%, Rs, basis points)
-- End with the key implication for markets or investors
-- Do NOT start with "This report..." or "The report..."
-- Write as if it's a Bloomberg terminal headline summary
-- Maximum 60 words total
+Read this research report and write a crisp 2-3 sentence insight about what is happening in this sector or economy.
+
+STRICT RULES:
+- Focus on the MACRO trend, sector development, or economic event — NOT stock picks
+- Do NOT mention any stock ratings (BUY/SELL/HOLD/Overweight etc.)
+- Do NOT recommend any stocks or say which company to invest in
+- DO mention specific data points, % changes, macro drivers if available
+- End with WHY this matters for the Indian economy or markets broadly
+- Write like an economist or journalist, not a broker
+- Maximum 60 words
 
 Report filename: {filename}
 Report text:
 {text[:4000]}
 
-Summary:"""
+Insight:"""
         response = client.models.generate_content(
             model="gemini-2.0-flash",
             contents=prompt
@@ -332,11 +345,11 @@ WEBSITE_CSS = """
         text-transform: uppercase;
     }
 
-    /* ---- SAVED BUTTON — WHITE THEME ---- */
+    /* ---- SAVED BUTTON — DIM GREY THEME ---- */
     #bookmark-toggle {
-        background: #ffffff;
-        border: 1px solid #ffffff;
-        color: #000000;
+        background: #2a2a2a;
+        border: 1px solid #444444;
+        color: #aaaaaa;
         font-family: 'IBM Plex Mono', monospace;
         font-size: 0.75em;
         font-weight: 700;
@@ -346,7 +359,8 @@ WEBSITE_CSS = """
     }
 
     #bookmark-toggle:hover {
-        background: #eeeeee;
+        background: #333333;
+        color: #ffffff;
     }
 
     /* ---- TICKER BAR — WHITE THEME ---- */
@@ -459,41 +473,45 @@ WEBSITE_CSS = """
         color: #ff6600;
     }
 
-    /* ---- TABLE STYLES ---- */
+    /* ---- TABLE STYLES — COMPACT ---- */
     .pdf-table-wrap {
-        margin: 16px 0;
+        margin: 12px 0;
         overflow-x: auto;
     }
 
-    .pdf-table-wrap p {
-        font-size: 0.72em;
+    .table-description {
+        font-size: 0.68em;
         color: #666666;
-        margin-bottom: 6px;
-        letter-spacing: 1px;
+        margin-bottom: 5px;
+        letter-spacing: 0.5px;
+        font-style: italic;
     }
 
     .pdf-table {
-        width: 100%;
+        width: auto;
+        max-width: 100%;
         border-collapse: collapse;
-        font-size: 0.78em;
-        color: #cccccc;
+        font-size: 0.70em;
+        color: #bbbbbb;
     }
 
     .pdf-table tr:first-child td {
         background: #1a0a00;
         color: #ff6600;
         font-weight: 700;
-        padding: 8px 10px;
+        padding: 5px 8px;
         border-bottom: 1px solid #ff6600;
         text-align: left;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.3px;
+        white-space: nowrap;
     }
 
     .pdf-table tr:not(:first-child) td {
-        padding: 7px 10px;
+        padding: 4px 8px;
         border-bottom: 1px solid #111111;
         text-align: left;
         vertical-align: top;
+        white-space: nowrap;
     }
 
     .pdf-table tr:nth-child(even) td {
@@ -642,14 +660,51 @@ BOOKMARK_JS = """
 #  SECTION 8: HTML TABLE BUILDER
 # ============================================================
 
-def table_to_html(table):
+BUY_SELL_WORDS = ['buy', 'sell', 'hold', 'accumulate', 'overweight', 'underweight', 'outperform', 'underperform', 'neutral', 'reduce']
+
+def table_description_generate(table, sector):
+    """Generate a one-line description of what the table shows"""
+    headers = [str(cell).lower() for cell in table[0] if cell]
+    header_str = " ".join(headers)
+
+    if any(w in header_str for w in ['cmp', 'reco', 'tp', 'target', 'rating', 'mkt cap']):
+        return f"Valuation & coverage data for key {sector} sector companies"
+    elif any(w in header_str for w in ['fy', 'revenue', 'ebitda', 'pat', 'eps', 'profit']):
+        return f"Financial estimates for {sector} sector companies"
+    elif any(w in header_str for w in ['inflation', 'wpi', 'cpi', 'index', 'iip']):
+        return f"Key economic indicators — {sector} data"
+    elif any(w in header_str for w in ['country', 'global', 'world', 'region']):
+        return f"Global comparison data relevant to {sector}"
+    else:
+        return f"Data extracted from report — {sector} sector"
+
+def filter_buy_sell_rows(table):
+    """Remove rows that are purely stock recommendation data"""
+    filtered = []
+    for i, row in enumerate(table):
+        if i == 0:
+            filtered.append(row)
+            continue
+        row_text = " ".join(str(cell).lower() for cell in row if cell)
+        # Skip rows where most content is buy/sell/hold recommendations
+        buy_sell_count = sum(1 for w in BUY_SELL_WORDS if w in row_text.split())
+        if buy_sell_count >= 2:
+            continue
+        filtered.append(row)
+    return filtered if len(filtered) > 1 else table
+
+def table_to_html(table, sector='RESEARCH'):
+    # Filter buy/sell rows
+    table = filter_buy_sell_rows(table)
+    description = table_description_generate(table, sector)
+
     rows_html = ""
     for row in table:
         cells = "".join(f"<td>{cell}</td>" for cell in row)
         rows_html += f"<tr>{cells}</tr>\n"
     return f"""
     <div class="pdf-table-wrap">
-        <p>TABLE FROM REPORT</p>
+        <div class="table-description">{description}</div>
         <table class="pdf-table">
             {rows_html}
         </table>
@@ -688,7 +743,7 @@ def website_banao(reports_data, ticker_items):
         tables_html = ""
         if report.get('tables'):
             for table in report['tables']:
-                tables_html += table_to_html(table)
+                tables_html += table_to_html(table, report.get('sector', 'RESEARCH'))
 
         # Hidden section
         hidden_section = ""

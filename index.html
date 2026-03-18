@@ -42,11 +42,11 @@
         text-transform: uppercase;
     }
 
-    /* ---- SAVED BUTTON — WHITE THEME ---- */
+    /* ---- SAVED BUTTON — DIM GREY THEME ---- */
     #bookmark-toggle {
-        background: #ffffff;
-        border: 1px solid #ffffff;
-        color: #000000;
+        background: #2a2a2a;
+        border: 1px solid #444444;
+        color: #aaaaaa;
         font-family: 'IBM Plex Mono', monospace;
         font-size: 0.75em;
         font-weight: 700;
@@ -56,7 +56,8 @@
     }
 
     #bookmark-toggle:hover {
-        background: #eeeeee;
+        background: #333333;
+        color: #ffffff;
     }
 
     /* ---- TICKER BAR — WHITE THEME ---- */
@@ -169,41 +170,45 @@
         color: #ff6600;
     }
 
-    /* ---- TABLE STYLES ---- */
+    /* ---- TABLE STYLES — COMPACT ---- */
     .pdf-table-wrap {
-        margin: 16px 0;
+        margin: 12px 0;
         overflow-x: auto;
     }
 
-    .pdf-table-wrap p {
-        font-size: 0.72em;
+    .table-description {
+        font-size: 0.68em;
         color: #666666;
-        margin-bottom: 6px;
-        letter-spacing: 1px;
+        margin-bottom: 5px;
+        letter-spacing: 0.5px;
+        font-style: italic;
     }
 
     .pdf-table {
-        width: 100%;
+        width: auto;
+        max-width: 100%;
         border-collapse: collapse;
-        font-size: 0.78em;
-        color: #cccccc;
+        font-size: 0.70em;
+        color: #bbbbbb;
     }
 
     .pdf-table tr:first-child td {
         background: #1a0a00;
         color: #ff6600;
         font-weight: 700;
-        padding: 8px 10px;
+        padding: 5px 8px;
         border-bottom: 1px solid #ff6600;
         text-align: left;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.3px;
+        white-space: nowrap;
     }
 
     .pdf-table tr:not(:first-child) td {
-        padding: 7px 10px;
+        padding: 4px 8px;
         border-bottom: 1px solid #111111;
         text-align: left;
         vertical-align: top;
+        white-space: nowrap;
     }
 
     .pdf-table tr:nth-child(even) td {
@@ -271,8 +276,8 @@
 
     <div id="ticker-bar">
         <div id="ticker-content">
-            <span>NIFTY 50 &nbsp; 23,777.80 &nbsp; ▲ +0.83%</span><span>SENSEX &nbsp; 76,704.13 &nbsp; ▲ +0.83%</span><span>BANK NIFTY &nbsp; 55,326.05 &nbsp; ▲ +0.82%</span><span>S&P 500 &nbsp; 6,638.70 &nbsp; ▼ -1.15%</span><span>NASDAQ &nbsp; 22,208.97 &nbsp; ▼ -1.20%</span><span>DOW JONES &nbsp; 46,274.83 &nbsp; ▼ -1.53%</span><span>GOLD &nbsp; $4,865.20 &nbsp; ▼ -2.72%</span><span>CRUDE OIL &nbsp; $96.58 &nbsp; ▲ +0.38%</span><span>USD/INR &nbsp; ₹92.99 &nbsp; ▲ +0.76%</span>
-            <span>NIFTY 50 &nbsp; 23,777.80 &nbsp; ▲ +0.83%</span><span>SENSEX &nbsp; 76,704.13 &nbsp; ▲ +0.83%</span><span>BANK NIFTY &nbsp; 55,326.05 &nbsp; ▲ +0.82%</span><span>S&P 500 &nbsp; 6,638.70 &nbsp; ▼ -1.15%</span><span>NASDAQ &nbsp; 22,208.97 &nbsp; ▼ -1.20%</span><span>DOW JONES &nbsp; 46,274.83 &nbsp; ▼ -1.53%</span><span>GOLD &nbsp; $4,865.20 &nbsp; ▼ -2.72%</span><span>CRUDE OIL &nbsp; $96.58 &nbsp; ▲ +0.38%</span><span>USD/INR &nbsp; ₹92.99 &nbsp; ▲ +0.76%</span>
+            <span>NIFTY 50 &nbsp; 23,777.80 &nbsp; ▲ +0.83%</span><span>SENSEX &nbsp; 76,704.13 &nbsp; ▲ +0.83%</span><span>BANK NIFTY &nbsp; 55,326.05 &nbsp; ▲ +0.82%</span><span>S&P 500 &nbsp; 6,624.70 &nbsp; ▼ -1.36%</span><span>NASDAQ &nbsp; 22,152.42 &nbsp; ▼ -1.46%</span><span>DOW JONES &nbsp; 46,225.15 &nbsp; ▼ -1.63%</span><span>GOLD &nbsp; $4,824.60 &nbsp; ▼ -3.53%</span><span>CRUDE OIL &nbsp; $99.10 &nbsp; ▲ +3.00%</span><span>USD/INR &nbsp; ₹92.99 &nbsp; ▲ +0.77%</span>
+            <span>NIFTY 50 &nbsp; 23,777.80 &nbsp; ▲ +0.83%</span><span>SENSEX &nbsp; 76,704.13 &nbsp; ▲ +0.83%</span><span>BANK NIFTY &nbsp; 55,326.05 &nbsp; ▲ +0.82%</span><span>S&P 500 &nbsp; 6,624.70 &nbsp; ▼ -1.36%</span><span>NASDAQ &nbsp; 22,152.42 &nbsp; ▼ -1.46%</span><span>DOW JONES &nbsp; 46,225.15 &nbsp; ▼ -1.63%</span><span>GOLD &nbsp; $4,824.60 &nbsp; ▼ -3.53%</span><span>CRUDE OIL &nbsp; $99.10 &nbsp; ▲ +3.00%</span><span>USD/INR &nbsp; ₹92.99 &nbsp; ▲ +0.77%</span>
         </div>
     </div>
 
@@ -330,13 +335,13 @@
         
 
         <ul>
-            <li>Investors are advised to refer disclosures made at the end of the research report.</li>
             <li>The global crude market has entered a phase of heightened volatility in last 2</li>
+            <li>weeks crossing $100/bbl as we write, driven primarily by 1) destruction of oil & gas</li>
         </ul>
 
         
     <div class="pdf-table-wrap">
-        <p>TABLE FROM REPORT</p>
+        <div class="table-description">Valuation & coverage data for key ENERGY sector companies</div>
         <table class="pdf-table">
             <tr><td>Company</td><td></td><td>Mkt Cap</td><td></td><td>TP (Rs)</td><td>Rating</td></tr>
 <tr><td></td><td></td><td>(Rs bn)</td><td></td><td></td><td></td></tr>
@@ -352,7 +357,7 @@
         </table>
     </div>
     <div class="pdf-table-wrap">
-        <p>TABLE FROM REPORT</p>
+        <div class="table-description">Valuation & coverage data for key ENERGY sector companies</div>
         <table class="pdf-table">
             <tr><td>Companies</td><td>CMP</td><td>Reco</td><td>TP</td><td>P/E</td><td></td><td></td><td>EV/EBITDA</td><td></td><td></td><td>P/BV (Rs)</td><td></td><td></td><td>RoE (%)</td><td></td><td></td></tr>
 <tr><td></td><td>(Rs)</td><td></td><td>(Rs)</td><td>FY26E</td><td>FY27E</td><td>FY28E</td><td>FY26E</td><td>FY27E</td><td>FY28E</td><td>FY26E</td><td>FY27E</td><td>FY28E</td><td>FY26E</td><td>FY27E</td><td>FY28E</td></tr>
@@ -373,8 +378,8 @@ Lubricants India</td><td>1,012</td><td>BUY</td><td>1,660</td><td>14.4</td><td>11
 
         
         <ul id="more-1" style="display:none; padding-left:18px; margin-top:0;">
-            <li>weeks crossing $100/bbl as we write, driven primarily by 1) destruction of oil & gas</li>
             <li>assets amid West Asia War triggered a strong risk premium in prices, and 2)</li>
+            <li>tightening supply dynamics owing to closure of Strait of Hormuz. Global rig activity</li>
         </ul>
 
         <div class="card-footer">
@@ -398,7 +403,7 @@ Lubricants India</td><td>1,012</td><td>BUY</td><td>1,660</td><td>14.4</td><td>11
         </div>
     </div>
     <div class="report-card">
-        <h2>SECTOR RATING:  Overweight</h2>
+        <h2>Bharat Petroleum Corporation</h2>
         <div class="title-meta">
             <span class="date">Published: 19 March 2026</span>
             <span class="sector-tag">ENERGY</span>
@@ -407,13 +412,13 @@ Lubricants India</td><td>1,012</td><td>BUY</td><td>1,660</td><td>14.4</td><td>11
         
 
         <ul>
-            <li>We hosted a webinar with oil market expert Mukesh Sahdev, founder, CEO, Chief Oil</li>
-            <li>Analyst of Xanalyst, Ex-Rystad and Ex-Shell, having more than 30 years of experience</li>
+            <li>across the oil value chain. The discussion focused on the ongoing crisis in the global oil</li>
+            <li>and gas market. The disruption is expected to create an estimated ~10 mb/d supply</li>
         </ul>
 
         
     <div class="pdf-table-wrap">
-        <p>TABLE FROM REPORT</p>
+        <div class="table-description">Data extracted from report — ENERGY sector</div>
         <table class="pdf-table">
             <tr><td>March 15, 2026</td><td></td><td></td><td></td></tr>
 <tr><td>Coverage Universe</td><td></td><td></td><td></td></tr>
@@ -437,7 +442,7 @@ Lubricants India</td><td>1,012</td><td>BUY</td><td>1,660</td><td>14.4</td><td>11
         </table>
     </div>
     <div class="pdf-table-wrap">
-        <p>TABLE FROM REPORT</p>
+        <div class="table-description">Global comparison data relevant to ENERGY</div>
         <table class="pdf-table">
             <tr><td>Refinery</td><td>Country</td><td>Status / Damage Type</td><td>Impacted Volume (kbpd)</td></tr>
 <tr><td>Ruwais</td><td>UAE</td><td>Shut down; Direct drone strike/fire (March 10)</td><td>~830</td></tr>
@@ -447,15 +452,15 @@ Lubricants India</td><td>1,012</td><td>BUY</td><td>1,660</td><td>14.4</td><td>11
 
         
         <ul id="more-2" style="display:none; padding-left:18px; margin-top:0;">
-            <li>across the oil value chain. The discussion focused on the ongoing crisis in the global oil</li>
-            <li>and gas market. The disruption is expected to create an estimated ~10 mb/d supply</li>
+            <li>gap by April 1, 2026, with the shortage more pronounced in refined products than</li>
+            <li>crude oil. Several major Middle Eastern refineries have reportedly been damaged,</li>
         </ul>
 
         <div class="card-footer">
             <button class="bookmark-btn"
-                    data-text="SECTOR RATING:  Overweight"
+                    data-text="Bharat Petroleum Corporation"
                     title="Bookmark this report"
-                    onclick="toggleBookmark(this, 'SECTOR RATING:  Overweight')"
+                    onclick="toggleBookmark(this, 'Bharat Petroleum Corporation')"
                     style="background:none; border:none; cursor:pointer;
                            color:#333; padding:0;">
                 <svg width="12" height="16" viewBox="0 0 14 18" fill="currentColor">
@@ -487,7 +492,7 @@ Lubricants India</td><td>1,012</td><td>BUY</td><td>1,660</td><td>14.4</td><td>11
 
         
     <div class="pdf-table-wrap">
-        <p>TABLE FROM REPORT</p>
+        <div class="table-description">Data extracted from report — ENERGY sector</div>
         <table class="pdf-table">
             <tr><td></td><td>-</td><td></td></tr>
 <tr><td>Pledged Shares</td><td></td><td>-</td></tr>
@@ -495,7 +500,7 @@ Lubricants India</td><td>1,012</td><td>BUY</td><td>1,660</td><td>14.4</td><td>11
         </table>
     </div>
     <div class="pdf-table-wrap">
-        <p>TABLE FROM REPORT</p>
+        <div class="table-description">Financial estimates for ENERGY sector companies</div>
         <table class="pdf-table">
             <tr><td></td><td></td><td></td><td></td><td>FY26E FY27E FY28E FY29E</td><td></td><td></td><td></td></tr>
 <tr><td></td><td></td><td></td><td></td><td>27,951 72,347 121,241 167,125</td><td></td><td></td><td></td></tr>
@@ -551,7 +556,7 @@ Lubricants India</td><td>1,012</td><td>BUY</td><td>1,660</td><td>14.4</td><td>11
 
         
     <div class="pdf-table-wrap">
-        <p>TABLE FROM REPORT</p>
+        <div class="table-description">Valuation & coverage data for key TECHNOLOGY sector companies</div>
         <table class="pdf-table">
             <tr><td>Recommendation summary (INR)</td><td></td></tr>
 <tr><td>T CS</td><td>BUY</td></tr>
@@ -578,7 +583,7 @@ Lubricants India</td><td>1,012</td><td>BUY</td><td>1,660</td><td>14.4</td><td>11
         </table>
     </div>
     <div class="pdf-table-wrap">
-        <p>TABLE FROM REPORT</p>
+        <div class="table-description">Data extracted from report — TECHNOLOGY sector</div>
         <table class="pdf-table">
             <tr><td>Stock price returns</td><td>CYTD</td><td>Last 6mn</td><td>Last 12mn</td></tr>
 <tr><td>Nifty</td><td>-6.4%</td><td>-1.2%</td><td>8.5%</td></tr>
@@ -639,7 +644,7 @@ Lubricants India</td><td>1,012</td><td>BUY</td><td>1,660</td><td>14.4</td><td>11
 
         
     <div class="pdf-table-wrap">
-        <p>TABLE FROM REPORT</p>
+        <div class="table-description">Data extracted from report — ENERGY sector</div>
         <table class="pdf-table">
             <tr><td>PAIN DIMENSION</td><td>CURRENT STATUS (D17)</td><td>THRESHOLD ASSESSMENT</td></tr>
 <tr><td>Military capacity</td><td>>60% of missile launchers destroyed; BM
@@ -665,7 +670,7 @@ absorbs the cost.</td></tr>
         </table>
     </div>
     <div class="pdf-table-wrap">
-        <p>TABLE FROM REPORT</p>
+        <div class="table-description">Data extracted from report — ENERGY sector</div>
         <table class="pdf-table">
             <tr><td>PAIN DIMENSION</td><td>CURRENT STATUS (D17)</td><td>THRESHOLD ASSESSMENT</td></tr>
 <tr><td>Economic</td><td>Kharg oil ops confirmed normal
@@ -733,7 +738,7 @@ objectives. Iran's pain threshold is crossed.</td></tr>
 
         
     <div class="pdf-table-wrap">
-        <p>TABLE FROM REPORT</p>
+        <div class="table-description">Data extracted from report — INFLATION sector</div>
         <table class="pdf-table">
             <tr><td></td><td>Y/y, %</td><td></td><td></td><td>Jan-26</td><td></td><td>Feb-26</td><td></td></tr>
 <tr><td></td><td>Headline CPI</td><td></td><td></td><td>2.74</td><td></td><td>3.21</td><td></td></tr>
@@ -748,7 +753,7 @@ objectives. Iran's pain threshold is crossed.</td></tr>
         </table>
     </div>
     <div class="pdf-table-wrap">
-        <p>TABLE FROM REPORT</p>
+        <div class="table-description">Data extracted from report — INFLATION sector</div>
         <table class="pdf-table">
             <tr><td></td><td></td><td></td><td>Sep'25</td><td></td><td></td><td>Oct'25</td><td></td><td></td><td>Nov'25</td><td></td><td></td><td>Dec'25</td><td></td><td></td><td>Jan'26</td><td></td><td></td><td>Feb'26</td><td></td><td></td><td>Mar'26*</td><td></td></tr>
 <tr><td>Cereals</td><td></td><td></td><td>0.55</td><td></td><td></td><td>0.32</td><td></td><td></td><td>-0.13</td><td></td><td></td><td>0.13</td><td></td><td></td><td>-0.21</td><td></td><td></td><td>0.47</td><td></td><td></td><td>0.16</td><td></td></tr>
@@ -803,7 +808,7 @@ objectives. Iran's pain threshold is crossed.</td></tr>
 
         
     <div class="pdf-table-wrap">
-        <p>TABLE FROM REPORT</p>
+        <div class="table-description">Valuation & coverage data for key ENERGY sector companies</div>
         <table class="pdf-table">
             <tr><td>Company</td><td>Rating</td><td></td><td>Target</td><td></td></tr>
 <tr><td></td><td></td><td></td><td>price</td><td></td></tr>
