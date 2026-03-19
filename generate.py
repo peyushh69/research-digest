@@ -1,6 +1,6 @@
 # ================================================================
 #  QUANTIS — RESEARCH DIGEST GENERATOR
-#  
+#
 #  Yeh file kya karti hai:
 #  1. pdfs/ folder se PDFs padhti hai
 #  2. Har PDF se title, bullet points, summary, tables nikalti hai
@@ -13,14 +13,22 @@
 #
 #  Zaruri folders:
 #  - pdfs/          ← apni PDF files yahan rakho
-#  - .env           ← API key yahan honi chahiye
-#  - processed.json ← automatically banta hai, delete karo toh sab reprocess hoga
+#  - .env           ← API keys yahan honi chahiye
+#  - processed.json ← automatically banta hai
+#
+#  UPDATES in this version:
+#  1. Dual API key fallback — Key 1 → Key 2 → Groq (3rd fallback)
+#  2. PDF delete fix — deleted PDFs website se automatically hatengi
+#  3. Naye PDFs top mein — latest PDF sabse upar dikhegi
+#  4. Smart caching — processed PDF dobara AI se process nahi hogi
+#  5. Quantis View — har report mein AI investor opinion button
+#  6. Table description caching — ek baar bani toh dobara AI call nahi
 # ================================================================
 
 
 # ================================================================
 #  LIBRARIES — yeh sab install honi chahiye
-#  Install karne ke liye: pip install pymupdf pdfplumber yfinance google-genai python-dotenv
+#  Install: pip install pymupdf pdfplumber yfinance google-genai python-dotenv groq
 # ================================================================
 
 import fitz          # PyMuPDF — PDF se text nikalne ke liye
@@ -29,6 +37,7 @@ import os            # File system ke liye
 import json          # Data save/load ke liye
 import yfinance as yf               # Live market data ke liye
 from google import genai            # Gemini AI ke liye
+from groq import Groq                # Groq AI — 3rd fallback ke liye
 from datetime import datetime       # Aaj ki date ke liye
 from dotenv import load_dotenv      # .env file se API key load karne ke liye
 
@@ -36,51 +45,78 @@ from dotenv import load_dotenv      # .env file se API key load karne ke liye
 # ================================================================
 #  STEP 1: API KEY SETUP
 #
-#  API key .env file se automatically load hoti hai
 #  .env file mein yeh hona chahiye:
-#  GEMINI_API_KEY=AIzaSy...tumhari_key_yahan
+#  GEMINI_API_KEY=AIzaSy...pehli_key
+#  GEMINI_API_KEY_2=AIzaSy...dusri_key
+#  GROQ_API_KEY=gsk_...groq_key
 #
-#  KABHI BHI yahan seedha key mat likho — woh GitHub pe public ho jaayegi!
+#  KABHI BHI yahan seedha key mat likho!
 # ================================================================
 
-load_dotenv()  # .env file load karo
+load_dotenv()
 
-# GOOGLE_API_KEY conflict fix — agar purani key system mein set hai toh remove karo
-# Warna Gemini dono keys dekh ke confuse hota hai
+# Purani GOOGLE_API_KEY conflict remove karo
 os.environ.pop("GOOGLE_API_KEY", None)
 
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
-WEBSITE_TITLE  = "Quantis"
+GEMINI_API_KEY   = os.environ.get("GEMINI_API_KEY", "")    # Pehli key
+GEMINI_API_KEY_2 = os.environ.get("GEMINI_API_KEY_2", "")  # Backup key
+GROQ_API_KEY     = os.environ.get("GROQ_API_KEY", "")      # 3rd fallback
+WEBSITE_TITLE    = "Quantis"
 
 
 # ================================================================
 #  STEP 2: GEMINI AI HELPER
 #
-#  Yeh function Gemini API ko call karta hai
-#  Har jagah se — title, bullets, summary, table description —
-#  sab is ek function se jaata hai
-#
-#  Agar API key galat hai ya internet nahi hai toh None return karega
+#  UPDATE 1: Dual API key fallback
+#  - Pehle Key 1 try hogi
+#  - Agar 429 quota error aaye toh automatically Key 2 use hogi
+#  - Dono fail hon toh None return hoga (fallback text use hoga)
 # ================================================================
 
 def gemini(prompt):
-    try:
-        client   = genai.Client(api_key=GEMINI_API_KEY)
-        response = client.models.generate_content(
-            model    = "gemini-2.0-flash",
-            contents = prompt
-        )
-        return response.text.strip()
-    except Exception as e:
-        print(f"  [Gemini error] {e}")
-        return None
+    # STEP 1: Gemini Key 1 try karo
+    # STEP 2: Agar 429 error aaye toh Gemini Key 2 try karo
+    # STEP 3: Agar dono fail ho toh Groq try karo (3rd fallback)
+
+    # Pehle dono Gemini keys try karo
+    for key_name, key in [("Key 1", GEMINI_API_KEY), ("Key 2", GEMINI_API_KEY_2)]:
+        if not key:
+            continue
+        try:
+            client   = genai.Client(api_key=key)
+            response = client.models.generate_content(
+                model    = "gemini-2.0-flash",
+                contents = prompt
+            )
+            return response.text.strip()
+        except Exception as e:
+            if "429" in str(e):
+                print(f"  [Gemini {key_name} quota khatam — next try...]")
+                continue  # Agla key try karo
+            print(f"  [Gemini {key_name} error] {e}")
+            return None
+
+    # Gemini dono fail — Groq try karo
+    if GROQ_API_KEY:
+        try:
+            print(f"  [Gemini quota khatam — Groq try kar raha hun...]")
+            client   = Groq(api_key=GROQ_API_KEY)
+            response = client.chat.completions.create(
+                model    = "llama-3.3-70b-versatile",
+                messages = [{"role": "user", "content": prompt}],
+                max_tokens = 500,
+            )
+            return response.choices[0].message.content.strip()
+        except Exception as e:
+            print(f"  [Groq error] {e}")
+            return None
+
+    print("  [Sab keys fail ho gayi]")
+    return None
 
 
 # ================================================================
 #  STEP 3: PDF SE TEXT NIKALO
-#
-#  PyMuPDF library se PDF ka poora text ek string mein nikalte hain
-#  Yeh text baad mein Gemini ko bheja jaata hai
 # ================================================================
 
 def pdf_text(filepath):
@@ -95,15 +131,8 @@ def pdf_text(filepath):
 # ================================================================
 #  STEP 4: AI TITLE GENERATOR
 #
-#  Gemini PDF ka text padh ke ek clean headline banata hai
-#  Jaise: "India WPI Inflation Hits 11-Month High in February"
-#
-#  Kya NAHI aana chahiye title mein:
-#  - Broker ka naam (Nuvama, Systematix etc.)
-#  - BUY/SELL/HOLD ratings
-#  - Analyst ka naam
-#
-#  Agar Gemini fail kare toh filename se title banta hai (fallback)
+#  Gemini ek clean Bloomberg-style headline banata hai
+#  Fallback: filename se title banta hai
 # ================================================================
 
 def ai_title(text, filename):
@@ -121,11 +150,9 @@ Report (first 1500 chars): {text[:1500]}
 
 Headline (just the text, nothing else):""")
 
-    # Agar Gemini ne sahi jawab diya toh use karo
     if result and len(result) > 10:
         return result[:130]
 
-    # Fallback: filename ko clean karke title banao
     name = filename.replace('.pdf','').replace('_',' ').replace('+',' ').replace('-',' ')
     return name.title()[:130]
 
@@ -133,11 +160,7 @@ Headline (just the text, nothing else):""")
 # ================================================================
 #  STEP 5: SECTOR AUTO-DETECT
 #
-#  PDF ke filename aur content se automatically sector detect hota hai
-#  Jaise: "oil", "gas", "crude" → ENERGY sector
-#         "bank", "rbi", "credit" → BANKING sector
-#
-#  Agar koi match nahi mila toh "RESEARCH" return hoga
+#  Filename + content se sector detect hota hai
 # ================================================================
 
 SECTOR_MAP = {
@@ -157,32 +180,21 @@ SECTOR_MAP = {
 }
 
 def detect_sector(text, filename):
-    # Filename + report ke pehle 2000 characters mein keywords dhundho
     check = (filename + " " + text[:2000]).lower()
     for sector, keywords in SECTOR_MAP.items():
         for kw in keywords:
             if kw in check:
                 return sector
-    return 'RESEARCH'  # Koi match nahi mila
+    return 'RESEARCH'
 
 
 # ================================================================
 #  STEP 6: AI BULLET POINTS GENERATOR
 #
-#  Gemini 4 crisp economic facts likhta hai
-#
-#  BILKUL NAHI AANA CHAHIYE:
-#  - BUY / SELL / HOLD / Accumulate / Overweight
-#  - Target Price / CMP / Price Target
-#  - Broker names / Analyst promotion
-#  - Webinar / CEO / "30 years experience" wali lines
-#
-#  Double protection hai:
-#  1. Gemini ko prompt mein strictly mana hai
-#  2. Post-processing filter — agar Gemini bhool ke bhi likh de toh remove
+#  4 crisp economic facts — koi stock tips nahi
+#  Double protection: prompt + post-processing filter
 # ================================================================
 
-# Yeh words bullet points mein aane par line automatically remove ho jaayegi
 STOCK_TIP_WORDS = [
     'buy', 'sell', 'hold', 'accumulate', 'overweight', 'underweight',
     'outperform', 'underperform', 'target price', 'price target', 'cmp',
@@ -208,7 +220,6 @@ Report text: {text[:5000]}
     if result:
         lines = [l.strip().lstrip('-*+.1234567890) ') for l in result.split('\n') if l.strip()]
         lines = [l for l in lines if len(l) > 15]
-        # Post-processing filter — stock tip wali lines hatao
         lines = [l for l in lines if not any(w in l.lower() for w in STOCK_TIP_WORDS)]
         return lines[:4] if lines else ["Key economic data available in the original report."]
     return ["Key economic data available in the original report."]
@@ -217,11 +228,8 @@ Report text: {text[:5000]}
 # ================================================================
 #  STEP 7: AI SUMMARY GENERATOR
 #
-#  Card ke neeche ek chhoti italic summary dikhti hai
-#  Yeh batati hai ki report kya kehna chahti hai — plain language mein
-#  Maximum 400 characters, 2 sentences
-#
-#  Koi stock tips nahi, koi ratings nahi — sirf economic story
+#  2 sentence plain language summary — report kya kehna chahti hai
+#  Max 400 characters, koi stock tips nahi
 # ================================================================
 
 def ai_summary(text, sector, filename):
@@ -244,43 +252,30 @@ Summary:""")
 # ================================================================
 #  STEP 8: TABLE EXTRACTION + CLEANING
 #
-#  pdfplumber library se PDF mein se tables nikalte hain
-#
-#  Kya filter hota hai:
-#  1. Pure recommendation tables — jisme sirf Company/Rating/Target ho → SKIP (show hi nahi hogi)
-#  2. BUY/SELL/HOLD columns → REMOVE (column hi hata dete hain)
-#
-#  Maximum 2 tables per PDF dikhayenge
+#  pdfplumber se tables nikalte hain
+#  Pure recommendation tables skip hoti hain
+#  BUY/SELL columns remove hote hain
+#  Max 2 tables per PDF
 # ================================================================
 
-# Yeh words column mein zyada hone pe woh column remove ho jaayega
 RATING_WORDS   = {'buy','sell','hold','accumulate','overweight','underweight',
                   'outperform','underperform','neutral','reduce','add'}
-
-# Yeh column headers hote hain jisme rating data hota hai
 RATING_HEADERS = {'reco','rating','recommendation','call','stance','view','recom','tp'}
 
 def is_recommendation_table(table):
-    """Check karo ki poori table sirf stock recommendations ki hai — agar haan toh skip karo"""
     if not table or not table[0]:
         return False
     headers   = [str(c).lower().strip() for c in table[0] if c]
     rec_count = sum(1 for h in headers if h in RATING_HEADERS or 'target' in h)
-    return rec_count >= 2  # 2 ya zyada rating columns hain toh pure rec table hai
+    return rec_count >= 2
 
 def remove_rating_columns(table):
-    """Table se BUY/SELL/HOLD wale columns hata do"""
     if not table or not table[0]:
         return table
-
     remove = set()
-
-    # Header se pehchano
     for ci, cell in enumerate(table[0]):
         if str(cell).lower().strip() in RATING_HEADERS:
             remove.add(ci)
-
-    # Column ke values se pehchano — agar 40% se zyada values rating words hain
     if len(table) > 2:
         for ci in range(len(table[0])):
             vals = [str(table[ri][ci]).lower().strip()
@@ -288,15 +283,11 @@ def remove_rating_columns(table):
                     if ci < len(table[ri])]
             if vals and sum(1 for v in vals if v in RATING_WORDS) / len(vals) > 0.4:
                 remove.add(ci)
-
     if not remove:
-        return table  # Kuch remove nahi karna
-
-    # Remove kiye bina wali columns wapas banao
+        return table
     return [[c for ci, c in enumerate(row) if ci not in remove] for row in table]
 
 def tables_nikalo(filepath):
-    """PDF se tables nikalo, clean karo, aur return karo"""
     extracted = []
     try:
         with pdfplumber.open(filepath) as pdf:
@@ -304,35 +295,22 @@ def tables_nikalo(filepath):
                 for table in (page.extract_tables() or []):
                     if not table:
                         continue
-
-                    # Empty rows hatao
                     clean = [[str(c).strip() if c else "" for c in row]
                              for row in table if any(c for c in row)]
-
-                    # Bahut choti tables skip karo
                     if len(clean) < 2 or len(clean[0]) < 2:
                         continue
-
-                    # Pure recommendation table → skip
                     if is_recommendation_table(clean):
                         print(f"  Skipped recommendation table")
                         continue
-
-                    # Rating columns remove karo
                     clean = remove_rating_columns(clean)
                     extracted.append(clean)
-
-                    # Maximum 2 tables per PDF
                     if len(extracted) >= 2:
                         return extracted
-
     except Exception as e:
         print(f"  [Table error] {e}")
-
     return extracted
 
 def ai_table_description(table, sector):
-    """Gemini table ke liye ek line description likhta hai"""
     preview = "\n".join(" | ".join(str(c) for c in row) for row in table[:4])
     result  = gemini(f"""Look at this table from a financial research report.
 Write ONE sentence (max 12 words) describing what DATA/METRICS this table shows.
@@ -349,13 +327,8 @@ One sentence description:""")
 # ================================================================
 #  STEP 9: LIVE MARKET DATA (TICKER BAR)
 #
-#  yfinance library se live data fetch karta hai
-#  Yeh data website ke upar wali scrolling bar mein dikhta hai
-#
-#  Data fetch hota hai: Nifty, Sensex, Bank Nifty, S&P 500,
-#  Nasdaq, Dow Jones, Gold, Crude Oil, USD/INR
-#
-#  Agar data nahi mila toh "N/A" dikhata hai
+#  yfinance se live Nifty, Sensex, Gold, Crude etc.
+#  White background, black text, 90s slow scroll
 # ================================================================
 
 def fetch_ticker():
@@ -372,50 +345,35 @@ def fetch_ticker():
     }
     items = []
     print("Fetching live market data...")
-
     for name, sym in symbols.items():
         try:
             hist  = yf.Ticker(sym).history(period="2d")
             if hist.empty:
                 raise ValueError("no data")
-
             cur   = hist['Close'].iloc[-1]
             prev  = hist['Close'].iloc[-2] if len(hist) >= 2 else cur
             chg   = ((cur - prev) / prev) * 100
             arrow = "▲" if chg >= 0 else "▼"
             sign  = "+" if chg >= 0 else ""
-
-            # Format — Gold/Crude mein $ sign, INR mein ₹
             if name in ["GOLD", "CRUDE OIL"]:
                 val = f"${cur:,.2f}"
             elif name == "USD/INR":
                 val = f"₹{cur:.2f}"
             else:
                 val = f"{cur:,.2f}"
-
             items.append(f"{name} &nbsp; {val} &nbsp; {arrow} {sign}{chg:.2f}%")
             print(f"  {name}: {val} {arrow} {sign}{chg:.2f}%")
-
         except Exception as e:
             print(f"  Could not fetch {name}: {e}")
             items.append(f"{name} &nbsp; -- &nbsp; N/A")
-
     return items
 
 
 # ================================================================
 #  STEP 10: WEBSITE CSS (DESIGN)
 #
-#  Yahan sirf colors aur fonts hain — content nahi
-#
-#  Current design:
-#  - Background: Black (#000000)
-#  - Accent: Orange (#ff6600)
-#  - Font: IBM Plex Mono
-#  - Ticker bar: White background, black text
-#  - SAVED button: Dark grey (aankhon ko bright nahi lagta)
-#  - Sector tag: Orange background, black text
-#  - AI Summary: Italic, grey, left border
+#  Black background, orange accent, IBM Plex Mono font
+#  UPDATE 5: Quantis View button style added (same as READ MORE)
 # ================================================================
 
 WEBSITE_CSS = """
@@ -430,7 +388,7 @@ WEBSITE_CSS = """
         padding-bottom: 60px;
     }
 
-    /* ---- HEADER (QUANTIS logo + SAVED button) ---- */
+    /* ---- HEADER ---- */
     #site-header {
         background: #000;
         border-bottom: 2px solid #ff6600;
@@ -449,7 +407,7 @@ WEBSITE_CSS = """
         letter-spacing: 3px;
     }
 
-    /* SAVED button — dark grey, aankhon ko suit karta hai */
+    /* SAVED button */
     #bookmark-toggle {
         background: #1a1a1a;
         border: 1px solid #444;
@@ -463,8 +421,7 @@ WEBSITE_CSS = """
     }
     #bookmark-toggle:hover { background: #2a2a2a; color: #fff; }
 
-    /* ---- TICKER BAR (scrolling market data) ---- */
-    /* White background, black text — clean readable */
+    /* ---- TICKER BAR ---- */
     #ticker-bar {
         background: #fff;
         color: #000;
@@ -477,7 +434,6 @@ WEBSITE_CSS = """
     }
     #ticker-content {
         display: inline-block;
-        /* 90 seconds mein ek loop — slow aur readable */
         animation: scroll-ticker 90s linear infinite;
         padding-left: 100%;
     }
@@ -487,7 +443,7 @@ WEBSITE_CSS = """
         100% { transform: translateX(-100%); }
     }
 
-    /* ---- MAIN CONTENT AREA ---- */
+    /* ---- MAIN CONTENT ---- */
     #main-content { max-width: 900px; margin: 30px auto; padding: 0 24px; }
 
     /* ---- REPORT CARD ---- */
@@ -502,7 +458,7 @@ WEBSITE_CSS = """
         margin-bottom: 8px;
     }
 
-    /* ---- DATE (left) + SECTOR TAG (right) ---- */
+    /* ---- DATE + SECTOR TAG ---- */
     .title-meta {
         display: flex;
         justify-content: space-between;
@@ -542,7 +498,6 @@ WEBSITE_CSS = """
         letter-spacing: 0.3px;
     }
     .pdf-table { width: 100%; border-collapse: collapse; font-size: 0.67em; }
-    /* Header row — orange text */
     .pdf-table tr:first-child td {
         background: #0d0600;
         color: #ff6600;
@@ -551,17 +506,15 @@ WEBSITE_CSS = """
         border-bottom: 1px solid #ff6600;
         white-space: nowrap;
     }
-    /* Data rows */
     .pdf-table tr:not(:first-child) td {
         padding: 5px 10px;
         color: #999;
         border-bottom: 1px solid #0a0a0a;
         white-space: nowrap;
     }
-    /* Alternate rows thoda alag background */
     .pdf-table tr:nth-child(even) td { background: #060606; }
 
-    /* ---- AI SUMMARY (card ke neeche italic text) ---- */
+    /* ---- AI SUMMARY ---- */
     .ai-summary {
         margin-top: 14px;
         padding: 10px 14px;
@@ -572,10 +525,64 @@ WEBSITE_CSS = """
         font-style: italic;
     }
 
-    /* ---- CARD FOOTER (bookmark + read more) ---- */
-    .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; }
+    /* ---- CARD FOOTER ---- */
+    .card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 14px;
+    }
 
-    /* ---- SAVED REPORTS PANEL (right side popup) ---- */
+    /* ---- QUANTIS VIEW (UPDATE 5) ----
+       Same style as READ MORE button
+       Browny/muted color jaise date text hai */
+    .quantis-view-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #555;
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.74em;
+        letter-spacing: 2px;
+        padding: 0;
+    }
+    .quantis-view-btn:hover { color: #888; }
+
+    /* Input box jo QUANTIS VIEW click karne pe open hota hai */
+    .quantis-view-box {
+        display: none;
+        margin-top: 12px;
+        border-top: 1px solid #111;
+        padding-top: 12px;
+    }
+    .quantis-view-box textarea {
+        width: 100%;
+        background: #050505;
+        border: 1px solid #1a1a1a;
+        color: #888;
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.74em;
+        padding: 8px 10px;
+        resize: none;
+        height: 52px;
+        outline: none;
+        letter-spacing: 0.5px;
+    }
+    .quantis-view-box textarea::placeholder { color: #333; }
+    .quantis-view-box textarea:focus { border-color: #2a2a2a; }
+
+    /* AI response — browny/muted jaise date */
+    .quantis-view-result {
+        margin-top: 8px;
+        font-size: 0.72em;
+        color: #6b5a45;
+        font-style: italic;
+        line-height: 1.7;
+        letter-spacing: 0.3px;
+        min-height: 0;
+    }
+
+    /* ---- SAVED PANEL ---- */
     #bookmark-panel {
         position: fixed;
         top: 90px; right: 20px;
@@ -610,18 +617,15 @@ WEBSITE_CSS = """
 
 
 # ================================================================
-#  STEP 11: JAVASCRIPT (INTERACTIVE FEATURES)
+#  STEP 11: JAVASCRIPT
 #
-#  Yeh sab features handle karta hai:
-#  - Bookmark (SAVED) button — report save/unsave
-#  - SAVED panel — saved reports ki list
-#  - READ MORE / READ LESS — extra bullet points dikhana
-#
-#  Kuch mat badlo yahan — yeh sab automatically kaam karta hai
+#  - Bookmark (SAVED) toggle
+#  - READ MORE / READ LESS
+#  - UPDATE 5: Quantis View — user type kare, Gemini investor opinion de
 # ================================================================
 
 BOOKMARK_JS = """
-    // Report bookmark karo / hatao
+    // Bookmark toggle
     function toggleBookmark(btn, text) {
         let bm = JSON.parse(localStorage.getItem('bookmarks') || '[]');
         const i = bm.indexOf(text);
@@ -631,7 +635,6 @@ BOOKMARK_JS = """
         showBookmarks();
     }
 
-    // SAVED panel mein list update karo
     function showBookmarks() {
         let bm = JSON.parse(localStorage.getItem('bookmarks') || '[]');
         document.getElementById('bookmark-list').innerHTML = bm.length === 0
@@ -643,7 +646,6 @@ BOOKMARK_JS = """
             bm.length > 0 ? 'SAVED ['+bm.length+']' : 'SAVED';
     }
 
-    // Report pe scroll karo
     function scrollToReport(t) {
         document.querySelectorAll('.report-card').forEach(card=>{
             const h = card.querySelector('h2');
@@ -654,13 +656,11 @@ BOOKMARK_JS = """
         });
     }
 
-    // SAVED panel open/close karo
     function togglePanel() {
         const p = document.getElementById('bookmark-panel');
         p.style.display = p.style.display==='none' ? 'block' : 'none';
     }
 
-    // Bookmark hatao
     function removeBookmark(i) {
         let bm = JSON.parse(localStorage.getItem('bookmarks') || '[]');
         bm.splice(i,1);
@@ -668,7 +668,6 @@ BOOKMARK_JS = """
         showBookmarks(); markSaved();
     }
 
-    // Saved buttons ka color set karo (orange = saved)
     function markSaved() {
         let bm = JSON.parse(localStorage.getItem('bookmarks') || '[]');
         document.querySelectorAll('.bookmark-btn').forEach(btn=>{
@@ -676,7 +675,6 @@ BOOKMARK_JS = """
         });
     }
 
-    // READ MORE / READ LESS toggle
     function toggleMore(i, btn) {
         const s = document.getElementById('more-'+i);
         if(s.style.display==='none') {
@@ -688,21 +686,79 @@ BOOKMARK_JS = """
         }
     }
 
-    // Page load hone pe saved buttons mark karo
+    // ---- UPDATE 5: QUANTIS VIEW ----
+    // User ka question + report context Gemini ko bheja jaata hai
+    // Response 150 characters mein, investor perspective se
+
+    function toggleQuantisView(i) {
+        const box = document.getElementById('qv-box-'+i);
+        box.style.display = box.style.display === 'none' ? 'block' : 'none';
+        if(box.style.display === 'block') {
+            box.querySelector('textarea').focus();
+        }
+    }
+
+    async function askQuantisView(i) {
+        const textarea = document.getElementById('qv-input-'+i);
+        const result   = document.getElementById('qv-result-'+i);
+        const question = textarea.value.trim();
+        const context  = document.getElementById('qv-context-'+i).value;
+
+        if(!question) return;
+
+        result.innerText = 'thinking...';
+
+        try {
+            const resp = await fetch('https://api.anthropic.com/v1/messages', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    model: 'claude-sonnet-4-20250514',
+                    max_tokens: 100,
+                    messages: [{
+                        role: 'user',
+                        content: `You are Quantis, a sharp Indian stock market analyst. 
+A user is reading this research report and has a question.
+
+Report context: ${context}
+
+User question: ${question}
+
+Give a crisp investor-perspective answer in maximum 150 characters. 
+No BUY/SELL tips. Focus on what this means for the sector/economy.
+Reply in the same language the user asked (Hindi or English).`
+                    }]
+                })
+            });
+            const data = await resp.json();
+            const text = data.content && data.content[0] ? data.content[0].text : 'Could not get response.';
+            result.innerText = text.slice(0, 150);
+        } catch(e) {
+            result.innerText = 'Error. Please try again.';
+        }
+    }
+
+    // Enter press karne pe submit ho
+    function qvKeydown(e, i) {
+        if(e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            askQuantisView(i);
+        }
+    }
+
     window.onload = function() { showBookmarks(); markSaved(); };
 """
 
 
 # ================================================================
 #  STEP 12: TABLE HTML BUILDER
-#
-#  Table data ko HTML mein convert karta hai
-#  Upar ek italic description hoti hai (Gemini se)
-#  Phir table dikhti hai
 # ================================================================
 
-def build_table_html(table, sector):
-    label = ai_table_description(table, sector)
+def build_table_html(table, label, sector):
+    # UPDATE 6: label ab processed.json se aata hai — AI call nahi hoti
+    # Agar cached label nahi hai toh fallback use karo
+    if not label:
+        label = f"Key metrics — {sector} sector"
     rows  = "".join(
         "<tr>" + "".join(f"<td>{c}</td>" for c in row) + "</tr>"
         for row in table
@@ -713,18 +769,20 @@ def build_table_html(table, sector):
 # ================================================================
 #  STEP 13: WEBSITE HTML BUILDER
 #
-#  Har report ka card banata hai aur poori website assemble karta hai
+#  UPDATE 3: Naye PDFs top mein (main process mein sort hota hai)
+#  UPDATE 5: Har card mein Quantis View button + input box
 #
 #  Card layout:
 #  ┌─────────────────────────────────────────┐
-#  │ TITLE (Gemini ne likha)                  │
-#  │ Date: 19 March 2026        [ENERGY]      │
-#  │ • Bullet point 1                         │
-#  │ • Bullet point 2                         │
-#  │ [Table — compact, clean]                 │
-#  │ [READ MORE ▼]  (2 aur bullets hain)      │
-#  │ Italic summary — report kya bata rahi hai│
-#  │ [🔖]                      [READ MORE ▼] │
+#  │ TITLE                                    │
+#  │ Date left          SECTOR TAG right      │
+#  │ • Bullet 1                               │
+#  │ • Bullet 2                               │
+#  │ [Table]                                  │
+#  │ [READ MORE ▼]                            │
+#  │ Italic AI summary                        │
+#  │ [🔖 Bookmark]  [QUANTIS VIEW] [READ MORE]│
+#  │ [Input box — type karo, AI jawab dega]   │
 #  └─────────────────────────────────────────┘
 # ================================================================
 
@@ -741,15 +799,17 @@ def build_website(reports, ticker_items):
         tables     = r.get('tables', [])
         safe_title = title.replace("'","").replace('"','')
 
-        # Pehle 2 bullets always dikhte hain
         vis_html = "".join(f"<li>{p}</li>" for p in bullets[:2])
-        # Baaki bullets READ MORE ke peeche chhupe hain
         hid_html = "".join(f"<li>{p}</li>" for p in bullets[2:])
 
         hidden_sec   = f'<ul class="bullets" id="more-{i}" style="display:none;">{hid_html}</ul>' if bullets[2:] else ""
-        tables_html  = "".join(build_table_html(t, sector) for t in tables)
+        table_descs  = r.get('table_descs', [''] * len(tables))
+        tables_html  = "".join(build_table_html(t, table_descs[i] if i < len(table_descs) else '', sector) for i, t in enumerate(tables))
         summary_html = f'<div class="ai-summary">{summary}</div>' if summary else ""
         read_more    = f'<button onclick="toggleMore({i},this)" style="background:none;border:none;cursor:pointer;color:#555;font-family:inherit;font-size:0.74em;letter-spacing:2px;">READ MORE &#9660;</button>' if bullets[2:] else ""
+
+        # Context for Quantis View AI (title + summary)
+        qv_context = f"{title}. Sector: {sector}. {summary or ''}"[:500]
 
         cards += f"""
     <div class="report-card">
@@ -770,11 +830,20 @@ def build_website(reports, ticker_items):
                     <path d="M0 0h14v18l-7-4.5L0 18z"/>
                 </svg>
             </button>
-            {read_more}
+            <div style="display:flex;gap:18px;align-items:center;">
+                <button class="quantis-view-btn" onclick="toggleQuantisView({i})">QUANTIS VIEW</button>
+                {read_more}
+            </div>
+        </div>
+        <div class="quantis-view-box" id="qv-box-{i}">
+            <input type="hidden" id="qv-context-{i}" value="{qv_context}">
+            <textarea id="qv-input-{i}"
+                placeholder="Is report ke baare mein kuch poochho... (Enter dabao)"
+                onkeydown="qvKeydown(event,{i})"></textarea>
+            <div class="quantis-view-result" id="qv-result-{i}"></div>
         </div>
     </div>"""
 
-    # Poori website HTML assemble karo
     html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -808,29 +877,47 @@ def build_website(reports, ticker_items):
 # ================================================================
 #  STEP 14: MAIN PROCESS
 #
-#  Yeh code sab kuch chalata hai:
-#  1. pdfs/ folder scan karo
-#  2. Naye PDFs dhundho (jo processed.json mein nahi hain)
-#  3. Har nayi PDF ko process karo (title, bullets, summary, tables)
-#  4. processed.json mein save karo
-#  5. Live ticker data fetch karo
-#  6. index.html update karo
+#  UPDATE 2: PDF delete fix
+#  - processed.json mein se deleted PDFs ki entries remove hoti hain
+#  - Woh reports website pe nahi dikhti
 #
-#  NOTE: Agar koi PDF pehle se process ho chuki hai toh dobara nahi hogi
-#  Sab reprocess karna ho toh: del processed.json
+#  UPDATE 3: Naye PDFs top mein
+#  - processed dict mein 'added_at' timestamp save hoti hai
+#  - Website build karte waqt newest pehle sort hota hai
+#
+#  UPDATE 4: Smart caching (already tha, confirm + comment)
+#  - Agar PDF processed.json mein hai toh Gemini call NAHI hogi
+#  - Sirf naye PDFs process hote hain — tokens bachte hain
 # ================================================================
 
-pdf_folder     = "pdfs"           # PDFs yahan rakho
-processed_file = "processed.json" # Already processed PDFs ki list
+pdf_folder     = "pdfs"
+processed_file = "processed.json"
 
-# Pehle se processed data load karo (ya empty dict banao)
+# Pehle se processed data load karo
 processed = json.load(open(processed_file)) if os.path.exists(processed_file) else {}
-new_found  = False
 
-# Har PDF check karo
+# ---- UPDATE 2: PDF DELETE FIX ----
+# pdfs/ folder mein jo PDFs hain unki list banao
+current_pdfs = set(f for f in os.listdir(pdf_folder) if f.endswith(".pdf"))
+# processed.json mein jo entries hain unme se deleted PDFs hatao
+deleted = [f for f in list(processed.keys()) if f not in current_pdfs]
+for f in deleted:
+    print(f"Removing deleted PDF from website: {f}")
+    del processed[f]
+if deleted:
+    with open(processed_file, "w") as f:
+        json.dump(processed, f, indent=2)
+
+# Naye PDFs process karo
+new_found = False
 for filename in os.listdir(pdf_folder):
-    if not filename.endswith(".pdf") or filename in processed:
-        continue  # PDF nahi hai ya pehle se process ho chuki hai
+    if not filename.endswith(".pdf"):
+        continue
+
+    # ---- UPDATE 4: SMART CACHING ----
+    # Pehle se process ho chuki PDF? Skip karo — Gemini call mat karo
+    if filename in processed:
+        continue
 
     print(f"\nProcessing: {filename}")
     filepath = os.path.join(pdf_folder, filename)
@@ -838,7 +925,6 @@ for filename in os.listdir(pdf_folder):
     sector   = detect_sector(text, filename)
     print(f"  Sector: {sector}")
 
-    # Gemini se sab kuch banwao
     print(f"  Generating AI title...")
     title = ai_title(text, filename)
     print(f"  Title: {title[:70]}")
@@ -853,27 +939,42 @@ for filename in os.listdir(pdf_folder):
     tables = tables_nikalo(filepath)
     print(f"  Tables found: {len(tables)}")
 
-    # Is PDF ka data save karo
+    # ---- UPDATE 6: TABLE DESCRIPTIONS CACHE ----
+    # Gemini se table descriptions ek baar banao aur save karo
+    # Dobara generate.py chalane pe AI call nahi hogi
+    print(f"  Generating table descriptions...")
+    table_descs = [ai_table_description(t, sector) for t in tables]
+
+    # ---- UPDATE 3: TIMESTAMP SAVE KARO (newest first ke liye) ----
     processed[filename] = {
-        'title':   title,
-        'sector':  sector,
-        'points':  bullets,
-        'summary': summary,
-        'tables':  tables,
+        'title':      title,
+        'sector':     sector,
+        'points':     bullets,
+        'summary':    summary,
+        'tables':     tables,
+        'table_descs': table_descs,  # Cached descriptions — dobara AI call nahi hogi
+        'added_at':   datetime.now().isoformat(),
     }
     new_found = True
 
-# Processed data save karo
-if new_found:
+# Save karo
+if new_found or deleted:
     with open(processed_file, "w") as f:
         json.dump(processed, f, indent=2)
     print("\nAll PDFs processed!")
 else:
     print("No new PDFs found.")
 
-# Live ticker data fetch karo
+# Live ticker
 ticker_items = fetch_ticker()
 
-# Website banao — newest reports pehle
-build_website(list(reversed(list(processed.values()))), ticker_items)
+# ---- UPDATE 3: NEWEST FIRST SORT ----
+# added_at timestamp ke hisaab se sort karo — naye PDF upar
+sorted_reports = sorted(
+    processed.values(),
+    key=lambda r: r.get('added_at', ''),
+    reverse=True  # Newest first
+)
+
+build_website(sorted_reports, ticker_items)
 print("Done! Open index.html to see the website.")
