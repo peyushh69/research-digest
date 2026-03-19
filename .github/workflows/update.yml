@@ -1,10 +1,11 @@
 name: Auto Update Quantis
 
 on:
+  workflow_dispatch:
   schedule:
-    - cron: '45 3 * * 1-5'   # 9:15 AM IST  (Mon-Fri)
-    - cron: '30 5 * * 1-5'   # 11:00 AM IST (Mon-Fri)
-    - cron: '00 10 * * 1-5'  # 3:30 PM IST  (Mon-Fri)
+    - cron: '45 3 * * 1-5'
+    - cron: '30 5 * * 1-5'
+    - cron: '00 10 * * 1-5'
 
 jobs:
   update:
