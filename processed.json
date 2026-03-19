@@ -1,13 +1,18 @@
 {
   "India_Feb\u201926_CPI_rises_to_3_21%_yet_underlying_inflation_stays_subdued.pdf": {
-    "title": "India Feb CPI surges to 3.21 percent",
+    "title": "India Feb CPI inflation rises to 3.21 percent",
     "sector": "INFLATION",
     "points": [
-      "CPI inflation 3.21%",
-      "Food inflation 3.35%",
-      "Underlying inflation 1.9%"
+      "Feb'26 CPI is 3.21%",
+      "Food inflation is 3.35%",
+      "Core CPI edges up to 3.41%",
+      "Underlying inflation is 1.9%"
     ],
-    "summary": "India's inflation rose to 3.21% in February. This matters for India's economy as it affects price stability and growth.",
+    "summary": "India's inflation rate rose to 3.21% in February. This matters for India's economy as it may impact growth and stability.",
+    "commentary": [
+      "Feb'26 CPI inflation rose to 3.21%, driven by sharp increase in food inflation to 3.35%. Core inflation stayed subdued at 1.9%."
+    ],
+    "quantis_view": "The upside surprise in Feb'26 CPI may exert pressure on interest rates, though the subdued core inflation and expected muted food inflation in FY26 may limit the downside for bonds and support select consumer staples stocks.",
     "tables": [
       [
         [
@@ -280,23 +285,27 @@
       ]
     ],
     "table_descs": [
-      "Inflation rates by sector and month.",
-      "Monthly inflation rates for various food categories."
+      "Inflation rates by category.",
+      "Monthly inflation rates for food categories."
     ],
-    "added_at": "2026-03-19T19:47:29.820467"
+    "added_at": "2026-03-19T21:32:06.801408"
   },
   "WPI-Inflation_Mar-2026.pdf": {
     "title": "WPI Inflation Hits 11-Month High",
     "sector": "INFLATION",
     "points": [
       "WPI touches 11 month high",
-      "Headline WPI at 2.13 percent",
-      "Core WPI at 3.3 percent",
-      "Food inflation at 1.85 percent"
+      "Headline WPI at 2.13% YoY",
+      "Food inflation up 1.85% YoY",
+      "Core WPI at 3.3% YoY"
     ],
-    "summary": "India's inflation rate rose to 2.13% in February. This matters for India's economy as higher inflation could impact growth and spending.",
+    "summary": "India's inflation rose to 11-month high. This matters for India's economy as it may impact growth.",
+    "commentary": [
+      "WPI at 11-month high: 2.13% YoY in Feb, up from 1.8% in Jan. Food inflation rose 1.85% YoY. Fuel inflation up 1.17% MoM, driven by LPG and mineral oil prices."
+    ],
+    "quantis_view": "Rising WPI and food inflation may exert upside pressure on interest rates, posing downside risk to rate-sensitive sectors, while crude oil price volatility may add to inflationary concerns.",
     "tables": [],
     "table_descs": [],
-    "added_at": "2026-03-19T19:47:56.783730"
+    "added_at": "2026-03-19T21:32:56.432621"
   }
 }

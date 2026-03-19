@@ -141,6 +141,10 @@
         white-space: nowrap;
     }
     .pdf-table tr:nth-child(even) td { background: #060606; }
+    /* Table color coding — positive=green, negative=red, neutral=yellow */
+    .pdf-table td.num-pos { color: #4caf50 !important; }
+    .pdf-table td.num-neg { color: #f44336 !important; }
+    .pdf-table td.num-neu { color: #b8a040 !important; }
 
     /* ---- AI SUMMARY ---- */
     .ai-summary {
@@ -161,45 +165,46 @@
         margin-top: 14px;
     }
 
-    /* ---- QUANTIS VIEW (UPDATE 5) ----
-       Same style as READ MORE button
-       Browny/muted color jaise date text hai */
-    .quantis-view-btn {
-        background: none;
-        border: none;
+    /* ---- QUANTIS VIEW — title ke bagal mein chhota tag ---- */
+    .qv-title-tag {
+        font-size: 0.55em;
+        color: #4a3a2a;
+        letter-spacing: 1.5px;
+        font-weight: 400;
+        margin-left: 10px;
+        vertical-align: middle;
         cursor: pointer;
-        color: #555;
-        font-family: 'IBM Plex Mono', monospace;
-        font-size: 0.74em;
-        letter-spacing: 2px;
-        padding: 0;
+        border-bottom: 1px dotted #4a3a2a;
     }
-    .quantis-view-btn:hover { color: #888; }
+    .qv-title-tag:hover { color: #6b5a45; }
 
     /* Input box jo QUANTIS VIEW click karne pe open hota hai */
     .quantis-view-box {
         display: none;
         margin-top: 12px;
-        border-top: 1px solid #111;
-        padding-top: 12px;
+        background: #0a0a08;
+        border: 1px solid #1a1a12;
+        border-left: 2px solid #4a3a2a;
+        padding: 10px 14px;
     }
     .quantis-view-box textarea {
         width: 100%;
-        background: #050505;
-        border: 1px solid #1a1a1a;
+        background: transparent;
+        border: none;
+        border-bottom: 1px solid #1a1a1a;
         color: #888;
         font-family: 'IBM Plex Mono', monospace;
         font-size: 0.74em;
-        padding: 8px 10px;
+        padding: 4px 0 8px;
         resize: none;
-        height: 52px;
+        height: 40px;
         outline: none;
         letter-spacing: 0.5px;
     }
-    .quantis-view-box textarea::placeholder { color: #333; }
-    .quantis-view-box textarea:focus { border-color: #2a2a2a; }
+    .quantis-view-box textarea::placeholder { color: #2a2a2a; }
+    .quantis-view-box textarea:focus { border-bottom-color: #4a3a2a; }
 
-    /* AI response — browny/muted jaise date */
+    /* AI response — browny/muted */
     .quantis-view-result {
         margin-top: 8px;
         font-size: 0.72em;
@@ -208,6 +213,45 @@
         line-height: 1.7;
         letter-spacing: 0.3px;
         min-height: 0;
+    }
+
+    /* ---- AUTO QUANTIS VIEW (har card mein auto trader view) ---- */
+    .auto-quantis-view {
+        margin-top: 12px;
+        padding: 8px 12px;
+        background: #050503;
+        border-left: 2px solid #4a3a2a;
+        font-size: 0.74em;
+        color: #6b5a45;
+        font-style: italic;
+        line-height: 1.7;
+        letter-spacing: 0.3px;
+    }
+    .aqv-label {
+        font-style: normal;
+        font-weight: 700;
+        font-size: 0.80em;
+        color: #4a3a2a;
+        letter-spacing: 2px;
+        margin-right: 8px;
+    }
+
+    /* ---- REPORT SUMMARY (READ MORE ke andar) ---- */
+    .commentary-label {
+        font-size: 0.60em;
+        color: #ff6600;
+        letter-spacing: 2px;
+        margin: 14px 0 8px;
+        font-weight: 700;
+    }
+    .commentary-summary {
+        font-size: 0.82em;
+        color: #777;
+        line-height: 1.8;
+        font-style: italic;
+        border-left: 2px solid #1a1a1a;
+        padding-left: 12px;
+        margin-bottom: 10px;
     }
 
     /* ---- SAVED PANEL ---- */
@@ -249,7 +293,7 @@
         <button id="bookmark-toggle" onclick="togglePanel()">SAVED</button>
     </div>
     <div id="ticker-bar">
-        <div id="ticker-content"><span>NIFTY 50 &nbsp; 23,002.15 &nbsp; ▼ -3.26%</span><span>SENSEX &nbsp; 74,207.24 &nbsp; ▼ -3.26%</span><span>BANK NIFTY &nbsp; 53,451.00 &nbsp; ▼ -3.39%</span><span>S&P 500 &nbsp; 6,586.78 &nbsp; ▼ -0.57%</span><span>NASDAQ &nbsp; 22,002.12 &nbsp; ▼ -0.68%</span><span>DOW JONES &nbsp; 45,896.69 &nbsp; ▼ -0.71%</span><span>GOLD &nbsp; $4,630.60 &nbsp; ▼ -5.30%</span><span>CRUDE OIL &nbsp; $96.73 &nbsp; ▲ +0.43%</span><span>USD/INR &nbsp; ₹93.11 &nbsp; ▲ +0.78%</span><span>NIFTY 50 &nbsp; 23,002.15 &nbsp; ▼ -3.26%</span><span>SENSEX &nbsp; 74,207.24 &nbsp; ▼ -3.26%</span><span>BANK NIFTY &nbsp; 53,451.00 &nbsp; ▼ -3.39%</span><span>S&P 500 &nbsp; 6,586.78 &nbsp; ▼ -0.57%</span><span>NASDAQ &nbsp; 22,002.12 &nbsp; ▼ -0.68%</span><span>DOW JONES &nbsp; 45,896.69 &nbsp; ▼ -0.71%</span><span>GOLD &nbsp; $4,630.60 &nbsp; ▼ -5.30%</span><span>CRUDE OIL &nbsp; $96.73 &nbsp; ▲ +0.43%</span><span>USD/INR &nbsp; ₹93.11 &nbsp; ▲ +0.78%</span></div>
+        <div id="ticker-content"><span>NIFTY 50 &nbsp; 23,002.15 &nbsp; ▼ -3.26%</span><span>SENSEX &nbsp; 74,207.24 &nbsp; ▼ -3.26%</span><span>BANK NIFTY &nbsp; 53,451.00 &nbsp; ▼ -3.39%</span><span>S&P 500 &nbsp; 6,595.51 &nbsp; ▼ -0.44%</span><span>NASDAQ &nbsp; 22,031.64 &nbsp; ▼ -0.55%</span><span>DOW JONES &nbsp; 45,938.02 &nbsp; ▼ -0.62%</span><span>GOLD &nbsp; $4,590.10 &nbsp; ▼ -6.13%</span><span>CRUDE OIL &nbsp; $98.64 &nbsp; ▲ +2.41%</span><span>USD/INR &nbsp; ₹93.14 &nbsp; ▲ +0.81%</span><span>NIFTY 50 &nbsp; 23,002.15 &nbsp; ▼ -3.26%</span><span>SENSEX &nbsp; 74,207.24 &nbsp; ▼ -3.26%</span><span>BANK NIFTY &nbsp; 53,451.00 &nbsp; ▼ -3.39%</span><span>S&P 500 &nbsp; 6,595.51 &nbsp; ▼ -0.44%</span><span>NASDAQ &nbsp; 22,031.64 &nbsp; ▼ -0.55%</span><span>DOW JONES &nbsp; 45,938.02 &nbsp; ▼ -0.62%</span><span>GOLD &nbsp; $4,590.10 &nbsp; ▼ -6.13%</span><span>CRUDE OIL &nbsp; $98.64 &nbsp; ▲ +2.41%</span><span>USD/INR &nbsp; ₹93.14 &nbsp; ▲ +0.81%</span></div>
     </div>
     <div id="main-content">
     <div class="report-card">
@@ -258,10 +302,10 @@
             <span class="date">19 March 2026</span>
             <span class="sector-tag">INFLATION</span>
         </div>
-        <ul class="bullets"><li>WPI touches 11 month high</li><li>Headline WPI at 2.13 percent</li></ul>
+        <ul class="bullets"><li>WPI touches 11 month high</li><li>Headline WPI at 2.13% YoY</li></ul>
         
-        <ul class="bullets" id="more-0" style="display:none;"><li>Core WPI at 3.3 percent</li><li>Food inflation at 1.85 percent</li></ul>
-        <div class="ai-summary">India's inflation rate rose to 2.13% in February. This matters for India's economy as higher inflation could impact growth and spending.</div>
+        <div id="more-0" style="display:none;"><ul class="bullets"><li>Food inflation up 1.85% YoY</li><li>Core WPI at 3.3% YoY</li></ul><div class="commentary-label">REPORT SUMMARY</div><div class="commentary-summary">WPI at 11-month high: 2.13% YoY in Feb, up from 1.8% in Jan. Food inflation rose 1.85% YoY. Fuel inflation up 1.17% MoM, driven by LPG and mineral oil prices.</div></div>
+        <div class="auto-quantis-view"><span class="aqv-label">QUANTIS VIEW</span> Rising WPI and food inflation may exert upside pressure on interest rates, posing downside risk to rate-sensitive sectors, while crude oil price volatility may add to inflationary concerns.</div>
         <div class="card-footer">
             <button class="bookmark-btn" data-text="WPI Inflation Hits 11-Month High"
                 onclick="toggleBookmark(this,'WPI Inflation Hits 11-Month High')"
@@ -270,49 +314,31 @@
                     <path d="M0 0h14v18l-7-4.5L0 18z"/>
                 </svg>
             </button>
-            <div style="display:flex;gap:18px;align-items:center;">
-                <button class="quantis-view-btn" onclick="toggleQuantisView(0)">QUANTIS VIEW</button>
-                <button onclick="toggleMore(0,this)" style="background:none;border:none;cursor:pointer;color:#555;font-family:inherit;font-size:0.74em;letter-spacing:2px;">READ MORE &#9660;</button>
-            </div>
+            <button onclick="toggleMore(0,this)" style="background:none;border:none;cursor:pointer;color:#555;font-family:inherit;font-size:0.74em;letter-spacing:2px;">READ MORE &#9660;</button>
         </div>
-        <div class="quantis-view-box" id="qv-box-0">
-            <input type="hidden" id="qv-context-0" value="WPI Inflation Hits 11-Month High. Sector: INFLATION. India's inflation rate rose to 2.13% in February. This matters for India's economy as higher inflation could impact growth and spending.">
-            <textarea id="qv-input-0"
-                placeholder="Is report ke baare mein kuch poochho... (Enter dabao)"
-                onkeydown="qvKeydown(event,0)"></textarea>
-            <div class="quantis-view-result" id="qv-result-0"></div>
-        </div>
+
     </div>
     <div class="report-card">
-        <h2>India Feb CPI surges to 3.21 percent</h2>
+        <h2>India Feb CPI inflation rises to 3.21 percent</h2>
         <div class="title-meta">
             <span class="date">19 March 2026</span>
             <span class="sector-tag">INFLATION</span>
         </div>
-        <ul class="bullets"><li>CPI inflation 3.21%</li><li>Food inflation 3.35%</li></ul>
-        <div class="table-wrap"><div class="table-label">Inflation rates by sector and month.</div><table class="pdf-table"><tr><td></td><td>Y/y, %</td><td></td><td></td><td>Jan-26</td><td></td><td>Feb-26</td><td></td></tr><tr><td></td><td>Headline CPI</td><td></td><td></td><td>2.74</td><td></td><td>3.21</td><td></td></tr><tr><td></td><td>Food</td><td></td><td></td><td>2.12</td><td></td><td>3.35</td><td></td></tr><tr><td></td><td>o/w Vegetables</td><td></td><td></td><td>-3.49</td><td></td><td>2.79</td><td></td></tr><tr><td></td><td>Fuel</td><td></td><td></td><td>0.16</td><td></td><td>0.14</td><td></td></tr><tr><td></td><td>Core</td><td></td><td></td><td>3.37</td><td></td><td>3.41</td><td></td></tr><tr><td></td><td>CPI ex-veg</td><td></td><td></td><td>3.04</td><td></td><td>3.23</td><td></td></tr><tr><td></td><td>Core ex-gold</td><td></td><td></td><td>2.87</td><td></td><td>2.87</td><td></td></tr><tr><td></td><td>Core ex-gold ex-silver</td><td></td><td></td><td>1.94</td><td></td><td>1.90</td><td></td></tr></table></div><div class="table-wrap"><div class="table-label">Monthly inflation rates for various food categories.</div><table class="pdf-table"><tr><td></td><td></td><td></td><td>Sep'25</td><td></td><td></td><td>Oct'25</td><td></td><td></td><td>Nov'25</td><td></td><td></td><td>Dec'25</td><td></td><td></td><td>Jan'26</td><td></td><td></td><td>Feb'26</td><td></td><td></td><td>Mar'26*</td><td></td></tr><tr><td>Cereals</td><td></td><td></td><td>0.55</td><td></td><td></td><td>0.32</td><td></td><td></td><td>-0.13</td><td></td><td></td><td>0.13</td><td></td><td></td><td>-0.21</td><td></td><td></td><td>0.47</td><td></td><td></td><td>0.16</td><td></td></tr><tr><td>Pulses</td><td></td><td></td><td>-0.71</td><td></td><td></td><td>-0.36</td><td></td><td></td><td>0.03</td><td></td><td></td><td>0.05</td><td></td><td></td><td>0.06</td><td></td><td></td><td>1.98</td><td></td><td></td><td>0.67</td><td></td></tr><tr><td>Oils</td><td></td><td></td><td>0.83</td><td></td><td></td><td>0.29</td><td></td><td></td><td>-0.03</td><td></td><td></td><td>0.04</td><td></td><td></td><td>-0.03</td><td></td><td></td><td>0.43</td><td></td><td></td><td>0.24</td><td></td></tr><tr><td>Veggies**</td><td></td><td></td><td>-9.43</td><td></td><td></td><td>-3.81</td><td></td><td></td><td>6.52</td><td></td><td></td><td>4.49</td><td></td><td></td><td>-4.03</td><td></td><td></td><td>-14.11</td><td></td><td></td><td>-5.92</td><td></td></tr><tr><td>Milk</td><td></td><td></td><td>0.25</td><td></td><td></td><td>-0.02</td><td></td><td></td><td>0.02</td><td></td><td></td><td>-0.15</td><td></td><td></td><td>0.15</td><td></td><td></td><td>-0.14</td><td></td><td></td><td>0.08</td><td></td></tr><tr><td>Sugar</td><td></td><td></td><td>0.48</td><td></td><td></td><td>0.24</td><td></td><td></td><td>-0.04</td><td></td><td></td><td>0.00</td><td></td><td></td><td>-0.34</td><td></td><td></td><td>0.00</td><td></td><td></td><td>0.02</td><td></td></tr></table></div>
-        <ul class="bullets" id="more-1" style="display:none;"><li>Underlying inflation 1.9%</li></ul>
-        <div class="ai-summary">India's inflation rose to 3.21% in February. This matters for India's economy as it affects price stability and growth.</div>
+        <ul class="bullets"><li>Feb'26 CPI is 3.21%</li><li>Food inflation is 3.35%</li></ul>
+        <div class="table-wrap"><div class="table-label">Inflation rates by category.</div><table class="pdf-table"><tr><td></td><td>Y/y, %</td><td></td><td></td><td>Jan-26</td><td></td><td>Feb-26</td><td></td></tr><tr><td></td><td>Headline CPI</td><td></td><td></td><td class="num-pos">2.74</td><td></td><td class="num-pos">3.21</td><td></td></tr><tr><td></td><td>Food</td><td></td><td></td><td class="num-pos">2.12</td><td></td><td class="num-pos">3.35</td><td></td></tr><tr><td></td><td>o/w Vegetables</td><td></td><td></td><td class="num-neg">-3.49</td><td></td><td class="num-pos">2.79</td><td></td></tr><tr><td></td><td>Fuel</td><td></td><td></td><td class="num-pos">0.16</td><td></td><td class="num-pos">0.14</td><td></td></tr><tr><td></td><td>Core</td><td></td><td></td><td class="num-pos">3.37</td><td></td><td class="num-pos">3.41</td><td></td></tr><tr><td></td><td>CPI ex-veg</td><td></td><td></td><td class="num-pos">3.04</td><td></td><td class="num-pos">3.23</td><td></td></tr><tr><td></td><td>Core ex-gold</td><td></td><td></td><td class="num-pos">2.87</td><td></td><td class="num-pos">2.87</td><td></td></tr><tr><td></td><td>Core ex-gold ex-silver</td><td></td><td></td><td class="num-pos">1.94</td><td></td><td class="num-pos">1.90</td><td></td></tr></table></div><div class="table-wrap"><div class="table-label">Monthly inflation rates for food categories.</div><table class="pdf-table"><tr><td></td><td></td><td></td><td>Sep'25</td><td></td><td></td><td>Oct'25</td><td></td><td></td><td>Nov'25</td><td></td><td></td><td>Dec'25</td><td></td><td></td><td>Jan'26</td><td></td><td></td><td>Feb'26</td><td></td><td></td><td>Mar'26*</td><td></td></tr><tr><td>Cereals</td><td></td><td></td><td class="num-pos">0.55</td><td></td><td></td><td class="num-pos">0.32</td><td></td><td></td><td class="num-neg">-0.13</td><td></td><td></td><td class="num-pos">0.13</td><td></td><td></td><td class="num-neg">-0.21</td><td></td><td></td><td class="num-pos">0.47</td><td></td><td></td><td class="num-pos">0.16</td><td></td></tr><tr><td>Pulses</td><td></td><td></td><td class="num-neg">-0.71</td><td></td><td></td><td class="num-neg">-0.36</td><td></td><td></td><td class="num-pos">0.03</td><td></td><td></td><td class="num-pos">0.05</td><td></td><td></td><td class="num-pos">0.06</td><td></td><td></td><td class="num-pos">1.98</td><td></td><td></td><td class="num-pos">0.67</td><td></td></tr><tr><td>Oils</td><td></td><td></td><td class="num-pos">0.83</td><td></td><td></td><td class="num-pos">0.29</td><td></td><td></td><td class="num-neg">-0.03</td><td></td><td></td><td class="num-pos">0.04</td><td></td><td></td><td class="num-neg">-0.03</td><td></td><td></td><td class="num-pos">0.43</td><td></td><td></td><td class="num-pos">0.24</td><td></td></tr><tr><td>Veggies**</td><td></td><td></td><td class="num-neg">-9.43</td><td></td><td></td><td class="num-neg">-3.81</td><td></td><td></td><td class="num-pos">6.52</td><td></td><td></td><td class="num-pos">4.49</td><td></td><td></td><td class="num-neg">-4.03</td><td></td><td></td><td class="num-neg">-14.11</td><td></td><td></td><td class="num-neg">-5.92</td><td></td></tr><tr><td>Milk</td><td></td><td></td><td class="num-pos">0.25</td><td></td><td></td><td class="num-neg">-0.02</td><td></td><td></td><td class="num-pos">0.02</td><td></td><td></td><td class="num-neg">-0.15</td><td></td><td></td><td class="num-pos">0.15</td><td></td><td></td><td class="num-neg">-0.14</td><td></td><td></td><td class="num-pos">0.08</td><td></td></tr><tr><td>Sugar</td><td></td><td></td><td class="num-pos">0.48</td><td></td><td></td><td class="num-pos">0.24</td><td></td><td></td><td class="num-neg">-0.04</td><td></td><td></td><td class="num-neu">0.00</td><td></td><td></td><td class="num-neg">-0.34</td><td></td><td></td><td class="num-neu">0.00</td><td></td><td></td><td class="num-pos">0.02</td><td></td></tr></table></div>
+        <div id="more-1" style="display:none;"><ul class="bullets"><li>Core CPI edges up to 3.41%</li><li>Underlying inflation is 1.9%</li></ul><div class="commentary-label">REPORT SUMMARY</div><div class="commentary-summary">Feb'26 CPI inflation rose to 3.21%, driven by sharp increase in food inflation to 3.35%. Core inflation stayed subdued at 1.9%.</div></div>
+        <div class="auto-quantis-view"><span class="aqv-label">QUANTIS VIEW</span> The upside surprise in Feb'26 CPI may exert pressure on interest rates, though the subdued core inflation and expected muted food inflation in FY26 may limit the downside for bonds and support select consumer staples stocks.</div>
         <div class="card-footer">
-            <button class="bookmark-btn" data-text="India Feb CPI surges to 3.21 percent"
-                onclick="toggleBookmark(this,'India Feb CPI surges to 3.21 percent')"
+            <button class="bookmark-btn" data-text="India Feb CPI inflation rises to 3.21 percent"
+                onclick="toggleBookmark(this,'India Feb CPI inflation rises to 3.21 percent')"
                 style="background:none;border:none;cursor:pointer;color:#333;padding:0;">
                 <svg width="12" height="16" viewBox="0 0 14 18" fill="currentColor">
                     <path d="M0 0h14v18l-7-4.5L0 18z"/>
                 </svg>
             </button>
-            <div style="display:flex;gap:18px;align-items:center;">
-                <button class="quantis-view-btn" onclick="toggleQuantisView(1)">QUANTIS VIEW</button>
-                <button onclick="toggleMore(1,this)" style="background:none;border:none;cursor:pointer;color:#555;font-family:inherit;font-size:0.74em;letter-spacing:2px;">READ MORE &#9660;</button>
-            </div>
+            <button onclick="toggleMore(1,this)" style="background:none;border:none;cursor:pointer;color:#555;font-family:inherit;font-size:0.74em;letter-spacing:2px;">READ MORE &#9660;</button>
         </div>
-        <div class="quantis-view-box" id="qv-box-1">
-            <input type="hidden" id="qv-context-1" value="India Feb CPI surges to 3.21 percent. Sector: INFLATION. India's inflation rose to 3.21% in February. This matters for India's economy as it affects price stability and growth.">
-            <textarea id="qv-input-1"
-                placeholder="Is report ke baare mein kuch poochho... (Enter dabao)"
-                onkeydown="qvKeydown(event,1)"></textarea>
-            <div class="quantis-view-result" id="qv-result-1"></div>
-        </div>
+
     </div></div>
     <div id="bookmark-panel">
         <h3>SAVED REPORTS</h3>
@@ -411,16 +437,20 @@
                     max_tokens: 100,
                     messages: [{
                         role: 'user',
-                        content: `You are Quantis, a sharp Indian stock market analyst. 
-A user is reading this research report and has a question.
+                        content: `You are Quantis — a sharp Indian trader/analyst. Answer like a seasoned trader thinks.
 
-Report context: ${context}
+Style rules (VERY IMPORTANT):
+- Use arrow format: "X upar gaya → Y hoga → Z sector pe impact"
+- Short, punchy, cause-effect chain
+- Max 2 sentences, max 150 characters total
+- No formal language. Think like a trader on a trading desk.
+- Reply in SAME language as the question (Hindi/English/Hinglish)
+- Example style: "WPI upar → cost pressure → RBI cut delay → Banks/Realty pe sell pressure near term"
 
-User question: ${question}
+Report context: \${context}
+User question: \${question}
 
-Give a crisp investor-perspective answer in maximum 150 characters. 
-No BUY/SELL tips. Focus on what this means for the sector/economy.
-Reply in the same language the user asked (Hindi or English).`
+Trader-style answer (max 150 chars):`
                     }]
                 })
             });

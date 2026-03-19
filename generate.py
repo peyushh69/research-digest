@@ -249,6 +249,63 @@ Summary:""")
     return result[:400] if result else None
 
 
+def ai_commentary(text, sector, filename):
+    """READ MORE ke andar — poori report ki 300 char summary, plain language mein"""
+    result = gemini(f"""Write a plain-language summary of this research report in maximum 300 characters.
+
+Rules:
+- Someone reads it once and understands the full report
+- Include key numbers/data points
+- No BUY/SELL/HOLD tips
+- No broker names
+- Simple, clear English
+- Strictly under 300 characters
+
+Sector: {sector}
+Report: {text[:3000]}
+
+Summary (max 300 chars):""")
+    if result:
+        # Clean prefix agar AI ne likh diya
+        clean = result.strip().lstrip('-*+.')
+        return [clean[:300]]
+    return []
+
+
+# ================================================================
+#  STEP 7B: QUANTIS VIEW GENERATOR
+#
+#  Har report ke liye automatic trader-style view
+#  User ko kuch type nahi karna — AI khud banata hai
+#  processed.json mein cache hota hai — dobara call nahi hogi
+# ================================================================
+
+def ai_quantis_view(text, sector, filename):
+    result = gemini(f"""Analyze the following data and write a professional "Quantis View" in 1–2 lines.
+
+Focus on:
+• What the data signals
+• Impact on markets or interest rates
+• Affected sectors or stocks
+
+Keep it sharp, trader-focused, and actionable. Avoid generic explanation. Use market language like "pressure", "support", "upside", "downside", "rate cuts", etc.
+
+Sector: {sector}
+Report: {text[:2500]}
+
+Quantis View:""")
+    if result:
+        # "Quantis View:" prefix remove karo agar AI ne likh diya
+        result = result.strip()
+        for prefix in ['Quantis View:', 'quantis view:', 'QUANTIS VIEW:', 'Quantis View -']:
+            if result.lower().startswith(prefix.lower()):
+                result = result[len(prefix):].strip()
+        lines = [l.strip().lstrip('-*+.') for l in result.split('\n') if l.strip()]
+        lines = [l for l in lines if len(l) > 15]
+        return ' '.join(lines[:2])[:300]
+    return None
+
+
 # ================================================================
 #  STEP 8: TABLE EXTRACTION + CLEANING
 #
@@ -513,6 +570,10 @@ WEBSITE_CSS = """
         white-space: nowrap;
     }
     .pdf-table tr:nth-child(even) td { background: #060606; }
+    /* Table color coding — positive=green, negative=red, neutral=yellow */
+    .pdf-table td.num-pos { color: #4caf50 !important; }
+    .pdf-table td.num-neg { color: #f44336 !important; }
+    .pdf-table td.num-neu { color: #b8a040 !important; }
 
     /* ---- AI SUMMARY ---- */
     .ai-summary {
@@ -533,45 +594,46 @@ WEBSITE_CSS = """
         margin-top: 14px;
     }
 
-    /* ---- QUANTIS VIEW (UPDATE 5) ----
-       Same style as READ MORE button
-       Browny/muted color jaise date text hai */
-    .quantis-view-btn {
-        background: none;
-        border: none;
+    /* ---- QUANTIS VIEW — title ke bagal mein chhota tag ---- */
+    .qv-title-tag {
+        font-size: 0.55em;
+        color: #4a3a2a;
+        letter-spacing: 1.5px;
+        font-weight: 400;
+        margin-left: 10px;
+        vertical-align: middle;
         cursor: pointer;
-        color: #555;
-        font-family: 'IBM Plex Mono', monospace;
-        font-size: 0.74em;
-        letter-spacing: 2px;
-        padding: 0;
+        border-bottom: 1px dotted #4a3a2a;
     }
-    .quantis-view-btn:hover { color: #888; }
+    .qv-title-tag:hover { color: #6b5a45; }
 
     /* Input box jo QUANTIS VIEW click karne pe open hota hai */
     .quantis-view-box {
         display: none;
         margin-top: 12px;
-        border-top: 1px solid #111;
-        padding-top: 12px;
+        background: #0a0a08;
+        border: 1px solid #1a1a12;
+        border-left: 2px solid #4a3a2a;
+        padding: 10px 14px;
     }
     .quantis-view-box textarea {
         width: 100%;
-        background: #050505;
-        border: 1px solid #1a1a1a;
+        background: transparent;
+        border: none;
+        border-bottom: 1px solid #1a1a1a;
         color: #888;
         font-family: 'IBM Plex Mono', monospace;
         font-size: 0.74em;
-        padding: 8px 10px;
+        padding: 4px 0 8px;
         resize: none;
-        height: 52px;
+        height: 40px;
         outline: none;
         letter-spacing: 0.5px;
     }
-    .quantis-view-box textarea::placeholder { color: #333; }
-    .quantis-view-box textarea:focus { border-color: #2a2a2a; }
+    .quantis-view-box textarea::placeholder { color: #2a2a2a; }
+    .quantis-view-box textarea:focus { border-bottom-color: #4a3a2a; }
 
-    /* AI response — browny/muted jaise date */
+    /* AI response — browny/muted */
     .quantis-view-result {
         margin-top: 8px;
         font-size: 0.72em;
@@ -580,6 +642,45 @@ WEBSITE_CSS = """
         line-height: 1.7;
         letter-spacing: 0.3px;
         min-height: 0;
+    }
+
+    /* ---- AUTO QUANTIS VIEW (har card mein auto trader view) ---- */
+    .auto-quantis-view {
+        margin-top: 12px;
+        padding: 8px 12px;
+        background: #050503;
+        border-left: 2px solid #4a3a2a;
+        font-size: 0.74em;
+        color: #6b5a45;
+        font-style: italic;
+        line-height: 1.7;
+        letter-spacing: 0.3px;
+    }
+    .aqv-label {
+        font-style: normal;
+        font-weight: 700;
+        font-size: 0.80em;
+        color: #4a3a2a;
+        letter-spacing: 2px;
+        margin-right: 8px;
+    }
+
+    /* ---- REPORT SUMMARY (READ MORE ke andar) ---- */
+    .commentary-label {
+        font-size: 0.60em;
+        color: #ff6600;
+        letter-spacing: 2px;
+        margin: 14px 0 8px;
+        font-weight: 700;
+    }
+    .commentary-summary {
+        font-size: 0.82em;
+        color: #777;
+        line-height: 1.8;
+        font-style: italic;
+        border-left: 2px solid #1a1a1a;
+        padding-left: 12px;
+        margin-bottom: 10px;
     }
 
     /* ---- SAVED PANEL ---- */
@@ -717,16 +818,20 @@ BOOKMARK_JS = """
                     max_tokens: 100,
                     messages: [{
                         role: 'user',
-                        content: `You are Quantis, a sharp Indian stock market analyst. 
-A user is reading this research report and has a question.
+                        content: `You are Quantis — a sharp Indian trader/analyst. Answer like a seasoned trader thinks.
 
-Report context: ${context}
+Style rules (VERY IMPORTANT):
+- Use arrow format: "X upar gaya → Y hoga → Z sector pe impact"
+- Short, punchy, cause-effect chain
+- Max 2 sentences, max 150 characters total
+- No formal language. Think like a trader on a trading desk.
+- Reply in SAME language as the question (Hindi/English/Hinglish)
+- Example style: "WPI upar → cost pressure → RBI cut delay → Banks/Realty pe sell pressure near term"
 
-User question: ${question}
+Report context: \${context}
+User question: \${question}
 
-Give a crisp investor-perspective answer in maximum 150 characters. 
-No BUY/SELL tips. Focus on what this means for the sector/economy.
-Reply in the same language the user asked (Hindi or English).`
+Trader-style answer (max 150 chars):`
                     }]
                 })
             });
@@ -754,15 +859,38 @@ Reply in the same language the user asked (Hindi or English).`
 #  STEP 12: TABLE HTML BUILDER
 # ================================================================
 
+def color_cell(val):
+    """Number detect karo aur color class lagao — red/green/yellow"""
+    try:
+        # Brackets wale negative numbers jaise (3.21)
+        v = str(val).strip().replace(',','').replace('%','').replace('$','')
+        if v.startswith('(') and v.endswith(')'):
+            return 'num-neg'
+        num = float(v)
+        if num > 0:   return 'num-pos'  # Green
+        if num < 0:   return 'num-neg'  # Red
+        return 'num-neu'                 # Yellow — zero
+    except:
+        return ''  # Text hai — koi color nahi
+
 def build_table_html(table, label, sector):
     # UPDATE 6: label ab processed.json se aata hai — AI call nahi hoti
-    # Agar cached label nahi hai toh fallback use karo
     if not label:
         label = f"Key metrics — {sector} sector"
-    rows  = "".join(
-        "<tr>" + "".join(f"<td>{c}</td>" for c in row) + "</tr>"
-        for row in table
-    )
+
+    rows = ""
+    for ri, row in enumerate(table):
+        cells = ""
+        for ci, c in enumerate(row):
+            if ri == 0:
+                # Header row — orange color already CSS mein hai
+                cells += f"<td>{c}</td>"
+            else:
+                # Data row — number check karo, color lagao
+                cls = color_cell(c)
+                cells += f'<td class="{cls}">{c}</td>' if cls else f"<td>{c}</td>"
+        rows += f"<tr>{cells}</tr>"
+
     return f'<div class="table-wrap"><div class="table-label">{label}</div><table class="pdf-table">{rows}</table></div>'
 
 
@@ -796,20 +924,29 @@ def build_website(reports, ticker_items):
         sector     = r.get('sector', 'RESEARCH')
         bullets    = r.get('points', [])
         summary    = r.get('summary', '')
+        commentary = r.get('commentary', [])
         tables     = r.get('tables', [])
         safe_title = title.replace("'","").replace('"','')
 
+        quantis_view = r.get('quantis_view', '')
+
+        # Pehle 2 bullets dikhte hain
         vis_html = "".join(f"<li>{p}</li>" for p in bullets[:2])
-        hid_html = "".join(f"<li>{p}</li>" for p in bullets[2:])
 
-        hidden_sec   = f'<ul class="bullets" id="more-{i}" style="display:none;">{hid_html}</ul>' if bullets[2:] else ""
+        # READ MORE mein: baaki bullets + commentary section
+        hid_bullets = "".join(f"<li>{p}</li>" for p in bullets[2:])
+        hid_com = ""
+        if commentary:
+            com_text = commentary[0] if commentary else ""
+            hid_com = f'<div class="commentary-label">REPORT SUMMARY</div><div class="commentary-summary">{com_text}</div>'
+
+        has_more   = bool(bullets[2:] or commentary)
+        hid_inner  = (f'<ul class="bullets">{hid_bullets}</ul>' if hid_bullets else "") + hid_com
+        hidden_sec = f'<div id="more-{i}" style="display:none;">{hid_inner}</div>' if has_more else ""
+
         table_descs  = r.get('table_descs', [''] * len(tables))
-        tables_html  = "".join(build_table_html(t, table_descs[i] if i < len(table_descs) else '', sector) for i, t in enumerate(tables))
-        summary_html = f'<div class="ai-summary">{summary}</div>' if summary else ""
-        read_more    = f'<button onclick="toggleMore({i},this)" style="background:none;border:none;cursor:pointer;color:#555;font-family:inherit;font-size:0.74em;letter-spacing:2px;">READ MORE &#9660;</button>' if bullets[2:] else ""
-
-        # Context for Quantis View AI (title + summary)
-        qv_context = f"{title}. Sector: {sector}. {summary or ''}"[:500]
+        tables_html  = "".join(build_table_html(t, table_descs[j] if j < len(table_descs) else '', sector) for j, t in enumerate(tables))
+        read_more    = f'<button onclick="toggleMore({i},this)" style="background:none;border:none;cursor:pointer;color:#555;font-family:inherit;font-size:0.74em;letter-spacing:2px;">READ MORE &#9660;</button>' if has_more else ""
 
         cards += f"""
     <div class="report-card">
@@ -821,7 +958,7 @@ def build_website(reports, ticker_items):
         <ul class="bullets">{vis_html}</ul>
         {tables_html}
         {hidden_sec}
-        {summary_html}
+        {f'<div class="auto-quantis-view"><span class="aqv-label">QUANTIS VIEW</span> {quantis_view}</div>' if quantis_view else ""}
         <div class="card-footer">
             <button class="bookmark-btn" data-text="{safe_title}"
                 onclick="toggleBookmark(this,'{safe_title}')"
@@ -830,18 +967,9 @@ def build_website(reports, ticker_items):
                     <path d="M0 0h14v18l-7-4.5L0 18z"/>
                 </svg>
             </button>
-            <div style="display:flex;gap:18px;align-items:center;">
-                <button class="quantis-view-btn" onclick="toggleQuantisView({i})">QUANTIS VIEW</button>
-                {read_more}
-            </div>
+            {read_more}
         </div>
-        <div class="quantis-view-box" id="qv-box-{i}">
-            <input type="hidden" id="qv-context-{i}" value="{qv_context}">
-            <textarea id="qv-input-{i}"
-                placeholder="Is report ke baare mein kuch poochho... (Enter dabao)"
-                onkeydown="qvKeydown(event,{i})"></textarea>
-            <div class="quantis-view-result" id="qv-result-{i}"></div>
-        </div>
+
     </div>"""
 
     html = f"""<!DOCTYPE html>
@@ -945,15 +1073,23 @@ for filename in os.listdir(pdf_folder):
     print(f"  Generating table descriptions...")
     table_descs = [ai_table_description(t, sector) for t in tables]
 
+    print(f"  Generating commentary...")
+    commentary = ai_commentary(text, sector, filename)
+
+    print(f"  Generating Quantis View...")
+    quantis_view = ai_quantis_view(text, sector, filename)
+
     # ---- UPDATE 3: TIMESTAMP SAVE KARO (newest first ke liye) ----
     processed[filename] = {
-        'title':      title,
-        'sector':     sector,
-        'points':     bullets,
-        'summary':    summary,
-        'tables':     tables,
-        'table_descs': table_descs,  # Cached descriptions — dobara AI call nahi hogi
-        'added_at':   datetime.now().isoformat(),
+        'title':        title,
+        'sector':       sector,
+        'points':       bullets,
+        'summary':      summary,
+        'commentary':   commentary,    # READ MORE mein dikhegi
+        'quantis_view': quantis_view,  # Auto trader view — cached
+        'tables':       tables,
+        'table_descs':  table_descs,
+        'added_at':     datetime.now().isoformat(),
     }
     new_found = True
 
