@@ -5,20 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quantis</title>
     <style>
+
     @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&display=swap');
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
 
     body {
         font-family: 'IBM Plex Mono', monospace;
-        background: #000;
-        color: #fff;
+        background: #000000;
+        color: #ffffff;
         padding-bottom: 60px;
     }
 
-    /* ---- HEADER (QUANTIS logo + SAVED button) ---- */
+    /* ---- BLOOMBERG STYLE HEADER ---- */
     #site-header {
-        background: #000;
+        background: #000000;
         border-bottom: 2px solid #ff6600;
         padding: 14px 24px;
         display: flex;
@@ -28,18 +33,20 @@
         top: 0;
         z-index: 100;
     }
+
     #site-logo {
         font-size: 1.6em;
         font-weight: 700;
-        color: #fff;
+        color: #ffffff;
         letter-spacing: 3px;
+        text-transform: uppercase;
     }
 
-    /* SAVED button — dark grey, aankhon ko suit karta hai */
+    /* ---- SAVED BUTTON — DIM GREY THEME ---- */
     #bookmark-toggle {
-        background: #1a1a1a;
-        border: 1px solid #444;
-        color: #888;
+        background: #2a2a2a;
+        border: 1px solid #444444;
+        color: #aaaaaa;
         font-family: 'IBM Plex Mono', monospace;
         font-size: 0.75em;
         font-weight: 700;
@@ -47,326 +54,883 @@
         cursor: pointer;
         letter-spacing: 2px;
     }
-    #bookmark-toggle:hover { background: #2a2a2a; color: #fff; }
 
-    /* ---- TICKER BAR (scrolling market data) ---- */
-    /* White background, black text — clean readable */
+    #bookmark-toggle:hover {
+        background: #333333;
+        color: #ffffff;
+    }
+
+    /* ---- TICKER BAR — WHITE THEME ---- */
     #ticker-bar {
-        background: #fff;
-        color: #000;
+        background: #ffffff;
+        color: #000000;
         font-size: 0.75em;
         font-weight: 700;
         padding: 5px 0;
         overflow: hidden;
         white-space: nowrap;
-        border-bottom: 1px solid #ddd;
+        border-bottom: 1px solid #dddddd;
     }
+
     #ticker-content {
         display: inline-block;
-        /* 90 seconds mein ek loop — slow aur readable */
         animation: scroll-ticker 90s linear infinite;
         padding-left: 100%;
     }
-    #ticker-content span { margin-right: 60px; color: #000; }
+
+    #ticker-content span {
+        margin-right: 60px;
+        letter-spacing: 1px;
+        color: #000000;
+    }
+
     @keyframes scroll-ticker {
         0%   { transform: translateX(0); }
         100% { transform: translateX(-100%); }
     }
 
     /* ---- MAIN CONTENT AREA ---- */
-    #main-content { max-width: 900px; margin: 30px auto; padding: 0 24px; }
-
-    /* ---- REPORT CARD ---- */
-    .report-card { border-bottom: 1px solid #1a1a1a; padding: 28px 0; }
-
-    /* ---- TITLE ---- */
-    .report-card h2 {
-        font-size: 1.1em;
-        color: #fff;
-        font-weight: 700;
-        line-height: 1.5;
-        margin-bottom: 8px;
+    #main-content {
+        max-width: 960px;
+        margin: 30px auto;
+        padding: 0 24px;
     }
 
-    /* ---- DATE (left) + SECTOR TAG (right) ---- */
+    /* ---- REPORT CARD ---- */
+    .report-card {
+        background: #000000;
+        border: none;
+        border-bottom: 1px solid #222222;
+        padding: 24px 0;
+        margin: 0;
+    }
+
+    /* ---- REPORT TITLE ---- */
+    .report-card h2 {
+        font-size: 1.15em;
+        color: #ffffff;
+        text-transform: none;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+        font-weight: 700;
+        line-height: 1.4;
+    }
+
+    /* ---- TITLE META ROW: date left, sector tag right ---- */
     .title-meta {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 16px;
+        margin-bottom: 14px;
     }
-    .date { font-size: 0.68em; color: #555; letter-spacing: 1px; }
+
+    .date {
+        font-size: 0.72em;
+        color: #888888;
+        letter-spacing: 1px;
+    }
+
     .sector-tag {
-        font-size: 0.65em;
+        font-size: 0.68em;
         font-weight: 700;
-        color: #000;
+        color: #000000;
         background: #ff6600;
         padding: 3px 10px;
         letter-spacing: 2px;
+        text-transform: uppercase;
+    }
+
+    /* ---- AI SUMMARY BOX ---- */
+    .ai-summary {
+        background: #0a0a0a;
+        border-left: 3px solid #ff6600;
+        padding: 10px 14px;
+        margin-bottom: 14px;
+        font-size: 0.83em;
+        color: #cccccc;
+        line-height: 1.7;
+        font-style: italic;
     }
 
     /* ---- BULLET POINTS ---- */
-    .bullets { padding-left: 16px; margin-bottom: 16px; }
-    .bullets li {
-        font-size: 0.84em;
-        color: #bbb;
-        line-height: 1.7;
-        padding-bottom: 6px;
-        margin-bottom: 4px;
-        border-bottom: 1px solid #0f0f0f;
+    ul {
+        line-height: 1.8;
+        padding-left: 18px;
     }
-    .bullets li::marker { color: #ff6600; }
 
-    /* ---- TABLE ---- */
-    .table-wrap { margin: 14px 0; overflow-x: auto; border: 1px solid #111; }
-    .table-label {
-        font-size: 0.63em;
-        color: #555;
-        font-style: italic;
-        padding: 6px 10px 5px;
-        border-bottom: 1px solid #111;
-        letter-spacing: 0.3px;
+    li {
+        margin-bottom: 8px;
+        color: #dddddd;
+        font-size: 0.88em;
+        padding-bottom: 6px;
+        border-bottom: 1px solid #111111;
     }
-    .pdf-table { width: 100%; border-collapse: collapse; font-size: 0.67em; }
-    /* Header row — orange text */
+
+    li::marker {
+        color: #ff6600;
+    }
+
+    /* ---- TABLE STYLES — COMPACT ---- */
+    .pdf-table-wrap {
+        margin: 12px 0;
+        overflow-x: auto;
+    }
+
+    .table-description {
+        font-size: 0.68em;
+        color: #666666;
+        margin-bottom: 5px;
+        letter-spacing: 0.5px;
+        font-style: italic;
+    }
+
+    .pdf-table {
+        width: auto;
+        max-width: 100%;
+        border-collapse: collapse;
+        font-size: 0.70em;
+        color: #bbbbbb;
+    }
+
     .pdf-table tr:first-child td {
-        background: #0d0600;
+        background: #1a0a00;
         color: #ff6600;
         font-weight: 700;
-        padding: 6px 10px;
+        padding: 5px 8px;
         border-bottom: 1px solid #ff6600;
+        text-align: left;
+        letter-spacing: 0.3px;
         white-space: nowrap;
     }
-    /* Data rows */
+
     .pdf-table tr:not(:first-child) td {
-        padding: 5px 10px;
-        color: #999;
-        border-bottom: 1px solid #0a0a0a;
+        padding: 4px 8px;
+        border-bottom: 1px solid #111111;
+        text-align: left;
+        vertical-align: top;
         white-space: nowrap;
     }
-    /* Alternate rows thoda alag background */
-    .pdf-table tr:nth-child(even) td { background: #060606; }
 
-    /* ---- AI SUMMARY (card ke neeche italic text) ---- */
-    .ai-summary {
-        margin-top: 14px;
-        padding: 10px 14px;
-        border-left: 2px solid #222;
-        font-size: 0.76em;
-        color: #555;
-        line-height: 1.8;
-        font-style: italic;
+    .pdf-table tr:nth-child(even) td {
+        background: #0a0a0a;
     }
 
-    /* ---- CARD FOOTER (bookmark + read more) ---- */
-    .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; }
+    /* ---- CARD FOOTER ---- */
+    .card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 14px;
+        padding-top: 8px;
+    }
 
-    /* ---- SAVED REPORTS PANEL (right side popup) ---- */
+    /* ---- BOOKMARK PANEL ---- */
     #bookmark-panel {
         position: fixed;
-        top: 90px; right: 20px;
-        width: 265px; max-height: 400px;
-        background: #0a0a0a;
-        border: 1px solid #1a1a1a;
-        padding: 14px;
+        top: 90px;
+        right: 20px;
+        width: 280px;
+        max-height: 420px;
+        background: #0d0d0d;
+        border: 1px solid #333333;
+        padding: 16px;
         overflow-y: auto;
         display: none;
         z-index: 999;
-        border-radius: 2px;
+        border-radius: 4px;
     }
+
     #bookmark-panel h3 {
         color: #ff6600;
         letter-spacing: 3px;
-        font-size: 0.70em;
-        border-bottom: 1px solid #1a1a1a;
+        font-size: 0.75em;
+        border-bottom: 1px solid #333333;
         padding-bottom: 8px;
         margin-bottom: 10px;
     }
+
     #bookmark-list li {
-        font-size: 0.74em;
-        color: #888;
-        padding: 7px 0;
+        font-size: 0.78em;
+        line-height: 1.5;
+        color: #cccccc;
+        border-bottom: 1px solid #1a1a1a;
+        padding: 8px 0;
         cursor: pointer;
+        letter-spacing: 0.3px;
         border: none;
-        border-bottom: 1px solid #0f0f0f;
         margin-bottom: 0;
     }
-    #bookmark-list li:hover { color: #fff; }
-</style>
+
+    #bookmark-list li:hover {
+        color: #ffffff;
+    }
+
+    </style>
 </head>
 <body>
+
     <div id="site-header">
         <div id="site-logo">Quantis</div>
         <button id="bookmark-toggle" onclick="togglePanel()">SAVED</button>
     </div>
+
     <div id="ticker-bar">
-        <div id="ticker-content"><span>NIFTY 50 &nbsp; 23,002.15 &nbsp; ▼ -3.26%</span><span>SENSEX &nbsp; 74,207.24 &nbsp; ▼ -3.26%</span><span>BANK NIFTY &nbsp; 53,451.00 &nbsp; ▼ -3.39%</span><span>S&P 500 &nbsp; 6,624.70 &nbsp; ▼ -1.36%</span><span>NASDAQ &nbsp; 22,152.42 &nbsp; ▼ -1.46%</span><span>DOW JONES &nbsp; 46,225.15 &nbsp; ▼ -1.63%</span><span>GOLD &nbsp; $4,689.90 &nbsp; ▼ -4.09%</span><span>CRUDE OIL &nbsp; $95.37 &nbsp; ▼ -0.99%</span><span>USD/INR &nbsp; ₹93.18 &nbsp; ▲ +0.85%</span><span>NIFTY 50 &nbsp; 23,002.15 &nbsp; ▼ -3.26%</span><span>SENSEX &nbsp; 74,207.24 &nbsp; ▼ -3.26%</span><span>BANK NIFTY &nbsp; 53,451.00 &nbsp; ▼ -3.39%</span><span>S&P 500 &nbsp; 6,624.70 &nbsp; ▼ -1.36%</span><span>NASDAQ &nbsp; 22,152.42 &nbsp; ▼ -1.46%</span><span>DOW JONES &nbsp; 46,225.15 &nbsp; ▼ -1.63%</span><span>GOLD &nbsp; $4,689.90 &nbsp; ▼ -4.09%</span><span>CRUDE OIL &nbsp; $95.37 &nbsp; ▼ -0.99%</span><span>USD/INR &nbsp; ₹93.18 &nbsp; ▲ +0.85%</span></div>
+        <div id="ticker-content">
+            <span>NIFTY 50 &nbsp; 23,002.15 &nbsp; ▼ -3.26%</span><span>SENSEX &nbsp; 74,207.24 &nbsp; ▼ -3.26%</span><span>BANK NIFTY &nbsp; 53,451.00 &nbsp; ▼ -3.39%</span><span>S&P 500 &nbsp; 6,624.70 &nbsp; ▼ -1.36%</span><span>NASDAQ &nbsp; 22,152.42 &nbsp; ▼ -1.46%</span><span>DOW JONES &nbsp; 46,225.15 &nbsp; ▼ -1.63%</span><span>GOLD &nbsp; $4,688.10 &nbsp; ▼ -4.13%</span><span>CRUDE OIL &nbsp; $95.59 &nbsp; ▼ -0.76%</span><span>USD/INR &nbsp; ₹93.17 &nbsp; ▲ +0.85%</span>
+            <span>NIFTY 50 &nbsp; 23,002.15 &nbsp; ▼ -3.26%</span><span>SENSEX &nbsp; 74,207.24 &nbsp; ▼ -3.26%</span><span>BANK NIFTY &nbsp; 53,451.00 &nbsp; ▼ -3.39%</span><span>S&P 500 &nbsp; 6,624.70 &nbsp; ▼ -1.36%</span><span>NASDAQ &nbsp; 22,152.42 &nbsp; ▼ -1.46%</span><span>DOW JONES &nbsp; 46,225.15 &nbsp; ▼ -1.63%</span><span>GOLD &nbsp; $4,688.10 &nbsp; ▼ -4.13%</span><span>CRUDE OIL &nbsp; $95.59 &nbsp; ▼ -0.76%</span><span>USD/INR &nbsp; ₹93.17 &nbsp; ▲ +0.85%</span>
+        </div>
     </div>
+
     <div id="main-content">
+        
     <div class="report-card">
-        <h2>Wpi Inflation Mar 2026</h2>
+        <h2>WPI: Touches 11-month high</h2>
         <div class="title-meta">
-            <span class="date">19 March 2026</span>
+            <span class="date">Published: 19 March 2026</span>
             <span class="sector-tag">INFLATION</span>
         </div>
-        <ul class="bullets"><li>Key economic data available in the original report.</li></ul>
+
         
+
+        <ul>
+            <li>Headline WPI for February came at 2.13% YoY from 1.8% YoY in January. On a sequential</li>
+            <li>basis, WPI eased slightly at 0.25% from 0.4% as some reprieve was seen in manufactured</li>
+        </ul>
+
         
+
         
+        <ul id="more-0" style="display:none; padding-left:18px; margin-top:0;">
+            <li>products (0.5%) and primary articles (-0.5%). Within Primary Articles, sequential upticks were</li>
+            <li>seen in non-food (0.8%) and crude (4.2%) while food (-1.3%) and mineral prices witnessed a</li>
+        </ul>
+
         <div class="card-footer">
-            <button class="bookmark-btn" data-text="Wpi Inflation Mar 2026"
-                onclick="toggleBookmark(this,'Wpi Inflation Mar 2026')"
-                style="background:none;border:none;cursor:pointer;color:#333;padding:0;">
+            <button class="bookmark-btn"
+                    data-text="WPI: Touches 11-month high"
+                    title="Bookmark this report"
+                    onclick="toggleBookmark(this, 'WPI: Touches 11-month high')"
+                    style="background:none; border:none; cursor:pointer;
+                           color:#333; padding:0;">
                 <svg width="12" height="16" viewBox="0 0 14 18" fill="currentColor">
                     <path d="M0 0h14v18l-7-4.5L0 18z"/>
                 </svg>
             </button>
-            
+
+            <button onclick="toggleMore(0, this)"
+                    style="background:none; border:none; cursor:pointer;
+                           color:#666666; font-family:inherit; font-size:0.78em;
+                           letter-spacing:2px; text-transform:uppercase;">
+                READ MORE &#9660;
+            </button>
         </div>
     </div>
     <div class="report-card">
-        <h2>Systematix Update On Oil & Gas  </h2>
+        <h2>Price and volume risk at the peak</h2>
         <div class="title-meta">
-            <span class="date">19 March 2026</span>
+            <span class="date">Published: 19 March 2026</span>
             <span class="sector-tag">ENERGY</span>
         </div>
-        <ul class="bullets"><li>Key economic data available in the original report.</li></ul>
-        <div class="table-wrap"><div class="table-label">Key metrics — ENERGY sector</div><table class="pdf-table"><tr><td>Company</td><td></td><td>Mkt Cap</td><td></td><td>TP (Rs)</td></tr><tr><td></td><td></td><td>(Rs bn)</td><td></td><td></td></tr><tr><td>RELIANCE</td><td>18,808</td><td></td><td></td><td>1,700</td></tr><tr><td>DEEPIND</td><td>22</td><td></td><td></td><td>693</td></tr><tr><td>GOLI</td><td>50</td><td></td><td></td><td>1,660</td></tr><tr><td>MGL</td><td>104</td><td></td><td></td><td>1,374</td></tr><tr><td>GUJGAS</td><td>265</td><td></td><td></td><td>447</td></tr><tr><td>IGL</td><td>227</td><td></td><td></td><td>226</td></tr><tr><td>GAIL</td><td>1,003</td><td></td><td></td><td>176</td></tr><tr><td>PLNG</td><td>445</td><td></td><td></td><td>342</td></tr></table></div><div class="table-wrap"><div class="table-label">Key metrics — ENERGY sector</div><table class="pdf-table"><tr><td>Name</td><td>CMP (Rs)</td><td></td><td>% Price</td><td></td><td></td><td>% Price</td><td></td><td></td><td>% Price
-Change
-3 Months</td><td>% Price
-Change
-6 Months</td><td></td><td></td><td>% Price</td><td></td><td></td><td>% Price</td><td></td><td></td><td>% Price</td><td></td><td></td><td>% Price
-Change
-10 Yr</td></tr><tr><td></td><td></td><td></td><td>Change</td><td></td><td></td><td>Change</td><td></td><td></td><td></td><td></td><td></td><td></td><td>Change</td><td></td><td></td><td>Change</td><td></td><td></td><td>Change</td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td>Week</td><td></td><td></td><td>1 Month</td><td></td><td></td><td></td><td></td><td></td><td></td><td>1 Yr</td><td></td><td></td><td>YTD</td><td></td><td></td><td>5 Yr</td><td></td><td></td><td></td></tr><tr><td>Reliance Industries Ltd</td><td>1,390</td><td>0.1</td><td></td><td></td><td>(4.1)</td><td></td><td></td><td>(10.7)</td><td></td><td>(0.4)</td><td></td><td>10.6</td><td></td><td></td><td>(11.5)</td><td></td><td></td><td>42.7</td><td></td><td></td><td>504.1</td><td></td></tr><tr><td>GAIL India Ltd</td><td>153</td><td>(2.7)</td><td></td><td></td><td>(6.8)</td><td></td><td></td><td>(10.6)</td><td></td><td>(14.6)</td><td></td><td>(4.2)</td><td></td><td></td><td>(11.4)</td><td></td><td></td><td>55.9</td><td></td><td></td><td>137.2</td><td></td></tr><tr><td>Petronet LNG Ltd</td><td>297</td><td>1.3</td><td></td><td></td><td>(0.1)</td><td></td><td></td><td>10.4</td><td></td><td>6.8</td><td></td><td>4.1</td><td></td><td></td><td>4.5</td><td></td><td></td><td>22.7</td><td></td><td></td><td>138.6</td><td></td></tr><tr><td>Gujarat Gas Ltd</td><td>385</td><td>(3.0)</td><td></td><td></td><td>(9.4)</td><td></td><td></td><td>(2.6)</td><td></td><td>(10.6)</td><td></td><td>(0.0)</td><td></td><td></td><td>(6.5)</td><td></td><td></td><td>(25.7)</td><td></td><td></td><td>285.0</td><td></td></tr><tr><td>Indraprastha Gas Ltd</td><td>162</td><td>1.1</td><td></td><td></td><td>(4.5)</td><td></td><td></td><td>(13.3)</td><td></td><td>(24.6)</td><td></td><td>(14.0)</td><td></td><td></td><td>(16.8)</td><td></td><td></td><td>(36.3)</td><td></td><td></td><td>209.6</td><td></td></tr><tr><td>Mahanagar Gas Ltd</td><td>1,049</td><td>(4.4)</td><td></td><td></td><td>(9.1)</td><td></td><td></td><td>(6.7)</td><td></td><td>(19.5)</td><td></td><td>(19.3)</td><td></td><td></td><td>(7.7)</td><td></td><td></td><td>(13.2)</td><td></td><td></td><td>149.2</td><td></td></tr><tr><td>Gulf Oil Lubricants India Ltd</td><td>1,012</td><td>(1.0)</td><td></td><td></td><td>(12.6)</td><td></td><td></td><td>(12.7)</td><td></td><td>(22.2)</td><td></td><td>(16.5)</td><td></td><td></td><td>(15.7)</td><td></td><td></td><td>37.9</td><td></td><td></td><td>112.8</td><td></td></tr><tr><td>Deep Industries</td><td>340</td><td>(3.4)</td><td></td><td></td><td>(16.8)</td><td></td><td></td><td>(23.0)</td><td></td><td>(36.3)</td><td></td><td>(25.8)</td><td></td><td></td><td>(26.3)</td><td></td><td></td><td>1,697.1</td><td></td><td></td><td>1,697.1</td><td></td></tr><tr><td>Indian Oil Corp Ltd</td><td>160</td><td>(6.6)</td><td></td><td></td><td>(10.0)</td><td></td><td></td><td>(2.1)</td><td></td><td>12.4</td><td></td><td>27.9</td><td></td><td></td><td>(3.7)</td><td></td><td></td><td>137.2</td><td></td><td></td><td>149.6</td><td></td></tr><tr><td>Bharat Petroleum Corp Ltd</td><td>326</td><td>(9.4)</td><td></td><td></td><td>(13.6)</td><td></td><td></td><td>(10.6)</td><td></td><td>2.6</td><td></td><td>22.6</td><td></td><td></td><td>(15.0)</td><td></td><td></td><td>42.7</td><td></td><td></td><td>143.4</td><td></td></tr><tr><td>Hindustan Petroleum Corp Ltd</td><td>384</td><td>(8.2)</td><td></td><td></td><td>(15.1)</td><td></td><td></td><td>(16.5)</td><td></td><td>(3.7)</td><td></td><td>17.3</td><td></td><td></td><td>(23.1)</td><td></td><td></td><td>138.7</td><td></td><td></td><td>258.6</td><td></td></tr><tr><td>Chennai Petroleum Corp Ltd</td><td>945</td><td>(4.7)</td><td></td><td></td><td>5.3</td><td></td><td></td><td>1.9</td><td></td><td>28.6</td><td></td><td>70.9</td><td></td><td></td><td>13.0</td><td></td><td></td><td>745.2</td><td></td><td></td><td>373.9</td><td></td></tr><tr><td>Mangalore Refinery & Petrochemicals Ltd</td><td>191</td><td>(2.5)</td><td></td><td></td><td>0.1</td><td></td><td></td><td>28.5</td><td></td><td>51.3</td><td></td><td>70.7</td><td></td><td></td><td>25.9</td><td></td><td></td><td>356.9</td><td></td><td></td><td>231.2</td><td></td></tr><tr><td>Oil & Natural Gas Corp Ltd</td><td>270</td><td>(2.2)</td><td></td><td></td><td>(2.2)</td><td></td><td></td><td>13.6</td><td></td><td>15.9</td><td></td><td>20.5</td><td></td><td></td><td>12.5</td><td></td><td></td><td>135.0</td><td></td><td></td><td>94.7</td><td></td></tr><tr><td>Oil India Ltd</td><td>479</td><td>0.1</td><td></td><td></td><td>1.0</td><td></td><td></td><td>18.6</td><td></td><td>20.3</td><td></td><td>30.7</td><td></td><td></td><td>13.0</td><td></td><td></td><td>445.2</td><td></td><td></td><td>364.0</td><td></td></tr><tr><td>Gujarat State Petronet Ltd</td><td>278</td><td>(4.0)</td><td></td><td></td><td>(10.3)</td><td></td><td></td><td>(3.8)</td><td></td><td>(9.7)</td><td></td><td>1.5</td><td></td><td></td><td>(9.1)</td><td></td><td></td><td>0.1</td><td></td><td></td><td>120.8</td><td></td></tr><tr><td>Adani Total Gas Ltd</td><td>609</td><td>26.0</td><td></td><td></td><td>13.6</td><td></td><td></td><td>2.6</td><td></td><td>0.6</td><td></td><td>1.4</td><td></td><td></td><td>7.5</td><td></td><td></td><td>(17.5)</td><td></td><td></td><td>705.6</td><td></td></tr><tr><td>BSE OIL & GAS</td><td>27,496</td><td>(2.8)</td><td></td><td></td><td>(5.6)</td><td></td><td></td><td>(1.7)</td><td></td><td>4.8</td><td></td><td>15.9</td><td></td><td></td><td>(4.2)</td><td></td><td></td><td>73.0</td><td></td><td></td><td>212.9</td><td></td></tr><tr><td>NSE Nifty 50 Index</td><td>23,633</td><td>(4.6)</td><td></td><td></td><td>(8.4)</td><td></td><td></td><td>(9.3)</td><td></td><td>(5.9)</td><td></td><td>5.2</td><td></td><td></td><td>(9.6)</td><td></td><td></td><td>57.2</td><td></td><td></td><td>213.5</td><td></td></tr></table></div>
+
         
+
+        <ul>
+            <li>The global crude market has entered a phase of heightened volatility in last 2</li>
+            <li>weeks crossing $100/bbl as we write, driven primarily by 1) destruction of oil & gas</li>
+        </ul>
+
         
+    <div class="pdf-table-wrap">
+        <div class="table-description">Valuation & coverage data for key ENERGY sector companies</div>
+        <table class="pdf-table">
+            <tr><td>Company</td><td></td><td>Mkt Cap</td><td></td><td>TP (Rs)</td><td>Rating</td></tr>
+<tr><td></td><td></td><td>(Rs bn)</td><td></td><td></td><td></td></tr>
+<tr><td>RELIANCE</td><td>18,808</td><td></td><td></td><td>1,700</td><td>BUY</td></tr>
+<tr><td>DEEPIND</td><td>22</td><td></td><td></td><td>693</td><td>BUY</td></tr>
+<tr><td>GOLI</td><td>50</td><td></td><td></td><td>1,660</td><td>BUY</td></tr>
+<tr><td>MGL</td><td>104</td><td></td><td></td><td>1,374</td><td>BUY</td></tr>
+<tr><td>GUJGAS</td><td>265</td><td></td><td></td><td>447</td><td>HOLD</td></tr>
+<tr><td>IGL</td><td>227</td><td></td><td></td><td>226</td><td>BUY</td></tr>
+<tr><td>GAIL</td><td>1,003</td><td></td><td></td><td>176</td><td>HOLD</td></tr>
+<tr><td>PLNG</td><td>445</td><td></td><td></td><td>342</td><td>BUY</td></tr>
+
+        </table>
+    </div>
+    <div class="pdf-table-wrap">
+        <div class="table-description">Valuation & coverage data for key ENERGY sector companies</div>
+        <table class="pdf-table">
+            <tr><td>Companies</td><td>CMP</td><td>Reco</td><td>TP</td><td>P/E</td><td></td><td></td><td>EV/EBITDA</td><td></td><td></td><td>P/BV (Rs)</td><td></td><td></td><td>RoE (%)</td><td></td><td></td></tr>
+<tr><td></td><td>(Rs)</td><td></td><td>(Rs)</td><td>FY26E</td><td>FY27E</td><td>FY28E</td><td>FY26E</td><td>FY27E</td><td>FY28E</td><td>FY26E</td><td>FY27E</td><td>FY28E</td><td>FY26E</td><td>FY27E</td><td>FY28E</td></tr>
+<tr><td>Reliance
+Industries Ltd</td><td>1,390</td><td>BUY</td><td>1,700</td><td>25.1</td><td>22.8</td><td>20.8</td><td>10.8</td><td>10.0</td><td>9.1</td><td>2.1</td><td>1.9</td><td>1.8</td><td>8.9</td><td>8.4</td><td>8.5</td></tr>
+<tr><td>GAIL India Ltd</td><td>153</td><td>HOLD</td><td>176</td><td>14.6</td><td>11.4</td><td>10.5</td><td>10.1</td><td>8.1</td><td>7.3</td><td>1.5</td><td>1.4</td><td>1.3</td><td>10.1</td><td>12.1</td><td>12.3</td></tr>
+<tr><td>Petronet LNG</td><td>297</td><td>BUY</td><td>342</td><td>11.4</td><td>10.2</td><td>9.6</td><td>6.3</td><td>5.7</td><td>5.4</td><td>2.1</td><td>1.9</td><td>1.7</td><td>18.2</td><td>18.3</td><td>17.6</td></tr>
+<tr><td>Gujarat Gas Ltd</td><td>385</td><td>HOLD</td><td>447</td><td>21.2</td><td>20.0</td><td>18.8</td><td>12.8</td><td>11.9</td><td>10.7</td><td>2.9</td><td>2.7</td><td>2.4</td><td>13.6</td><td>13.4</td><td>12.6</td></tr>
+<tr><td>Indraprastha
+Gas Ltd</td><td>162</td><td>BUY</td><td>226</td><td>14.6</td><td>11.9</td><td>10.9</td><td>9.3</td><td>7.2</td><td>6.4</td><td>2.2</td><td>1.9</td><td>1.7</td><td>15.0</td><td>16.3</td><td>15.8</td></tr>
+<tr><td>Mahanagar Gas</td><td>1,049</td><td>BUY</td><td>1,374</td><td>10.7</td><td>11.0</td><td>10.7</td><td>5.4</td><td>5.0</td><td>4.4</td><td>1.6</td><td>1.5</td><td>1.4</td><td>15.0</td><td>13.5</td><td>12.8</td></tr>
+<tr><td>Gulf Oil
+Lubricants India</td><td>1,012</td><td>BUY</td><td>1,660</td><td>14.4</td><td>11.5</td><td>10.3</td><td>7.0</td><td>5.5</td><td>4.3</td><td>3.1</td><td>2.9</td><td>2.6</td><td>22.7</td><td>26.2</td><td>26.5</td></tr>
+<tr><td>Deep Industries</td><td>340</td><td>BUY</td><td>693</td><td>8.3</td><td>7.0</td><td>5.9</td><td>6.5</td><td>5.8</td><td>4.4</td><td>1.3</td><td>1.1</td><td>1.0</td><td>14.8</td><td>15.3</td><td>15.6</td></tr>
+
+        </table>
+    </div>
+
+        
+        <ul id="more-1" style="display:none; padding-left:18px; margin-top:0;">
+            <li>assets amid West Asia War triggered a strong risk premium in prices, and 2)</li>
+            <li>tightening supply dynamics owing to closure of Strait of Hormuz. Global rig activity</li>
+        </ul>
+
         <div class="card-footer">
-            <button class="bookmark-btn" data-text="Systematix Update On Oil & Gas  "
-                onclick="toggleBookmark(this,'Systematix Update On Oil & Gas  ')"
-                style="background:none;border:none;cursor:pointer;color:#333;padding:0;">
+            <button class="bookmark-btn"
+                    data-text="Price and volume risk at the peak"
+                    title="Bookmark this report"
+                    onclick="toggleBookmark(this, 'Price and volume risk at the peak')"
+                    style="background:none; border:none; cursor:pointer;
+                           color:#333; padding:0;">
                 <svg width="12" height="16" viewBox="0 0 14 18" fill="currentColor">
                     <path d="M0 0h14v18l-7-4.5L0 18z"/>
                 </svg>
             </button>
-            
+
+            <button onclick="toggleMore(1, this)"
+                    style="background:none; border:none; cursor:pointer;
+                           color:#666666; font-family:inherit; font-size:0.78em;
+                           letter-spacing:2px; text-transform:uppercase;">
+                READ MORE &#9660;
+            </button>
         </div>
     </div>
     <div class="report-card">
-        <h2>It Services   Sector Update Mar 26 Nuvama</h2>
+        <h2>Bharat Petroleum Corporation</h2>
         <div class="title-meta">
-            <span class="date">19 March 2026</span>
+            <span class="date">Published: 19 March 2026</span>
+            <span class="sector-tag">ENERGY</span>
+        </div>
+
+        
+
+        <ul>
+            <li>across the oil value chain. The discussion focused on the ongoing crisis in the global oil</li>
+            <li>and gas market. The disruption is expected to create an estimated ~10 mb/d supply</li>
+        </ul>
+
+        
+    <div class="pdf-table-wrap">
+        <div class="table-description">Data extracted from report — ENERGY sector</div>
+        <table class="pdf-table">
+            <tr><td>March 15, 2026</td><td></td><td></td><td></td></tr>
+<tr><td>Coverage Universe</td><td></td><td></td><td></td></tr>
+<tr><td>Name of the Company</td><td>Rating</td><td>CMP</td><td>TP</td></tr>
+<tr><td></td><td></td><td>(INR)</td><td>(INR)</td></tr>
+<tr><td>Bharat Petroleum Corporation</td><td>Accumulate</td><td>319</td><td>406</td></tr>
+<tr><td>GAIL (India)</td><td>BUY</td><td>148</td><td>190</td></tr>
+<tr><td>Gujarat Gas</td><td>Accumulate</td><td>374</td><td>422</td></tr>
+<tr><td>Gujarat State Petronet</td><td>Hold</td><td>272</td><td>296</td></tr>
+<tr><td>Hindustan Petroleum Corporation</td><td>Accumulate</td><td>369</td><td>457</td></tr>
+<tr><td>Indraprastha Gas</td><td>Accumulate</td><td>157</td><td>191</td></tr>
+<tr><td>Indian Oil Corporation</td><td>Accumulate</td><td>157</td><td>195</td></tr>
+<tr><td>Mahanagar Gas</td><td>Accumulate</td><td>1,035</td><td>1,305</td></tr>
+<tr><td>Mangalore Refinery &</td><td>Accumulate</td><td>178</td><td>162</td></tr>
+<tr><td>Petrochemicals</td><td></td><td></td><td></td></tr>
+<tr><td>Oil India</td><td>Accumulate</td><td>471</td><td>527</td></tr>
+<tr><td>Oil & Natural Gas Corporation</td><td>Accumulate</td><td>264</td><td>297</td></tr>
+<tr><td>Petronet LNG</td><td>Hold</td><td>286</td><td>288</td></tr>
+<tr><td>Reliance Industries</td><td>BUY</td><td>1,381</td><td>1,688</td></tr>
+
+        </table>
+    </div>
+    <div class="pdf-table-wrap">
+        <div class="table-description">Global comparison data relevant to ENERGY</div>
+        <table class="pdf-table">
+            <tr><td>Refinery</td><td>Country</td><td>Status / Damage Type</td><td>Impacted Volume (kbpd)</td></tr>
+<tr><td>Ruwais</td><td>UAE</td><td>Shut down; Direct drone strike/fire (March 10)</td><td>~830</td></tr>
+
+        </table>
+    </div>
+
+        
+        <ul id="more-2" style="display:none; padding-left:18px; margin-top:0;">
+            <li>gap by April 1, 2026, with the shortage more pronounced in refined products than</li>
+            <li>crude oil. Several major Middle Eastern refineries have reportedly been damaged,</li>
+        </ul>
+
+        <div class="card-footer">
+            <button class="bookmark-btn"
+                    data-text="Bharat Petroleum Corporation"
+                    title="Bookmark this report"
+                    onclick="toggleBookmark(this, 'Bharat Petroleum Corporation')"
+                    style="background:none; border:none; cursor:pointer;
+                           color:#333; padding:0;">
+                <svg width="12" height="16" viewBox="0 0 14 18" fill="currentColor">
+                    <path d="M0 0h14v18l-7-4.5L0 18z"/>
+                </svg>
+            </button>
+
+            <button onclick="toggleMore(2, this)"
+                    style="background:none; border:none; cursor:pointer;
+                           color:#666666; font-family:inherit; font-size:0.78em;
+                           letter-spacing:2px; text-transform:uppercase;">
+                READ MORE &#9660;
+            </button>
+        </div>
+    </div>
+    <div class="report-card">
+        <h2>We initiate coverage of NTPC Green Energy Ltd (NGEL) with a BUY and a TP</h2>
+        <div class="title-meta">
+            <span class="date">Published: 19 March 2026</span>
+            <span class="sector-tag">ENERGY</span>
+        </div>
+
+        
+
+        <ul>
+            <li>We initiate coverage of NTPC Green Energy Ltd (NGEL) with a BUY and a TP</li>
+            <li>of INR 121 at 14.5x EV/EBITDA FY29 EBIDTA discounted at 12% to arrive at</li>
+        </ul>
+
+        
+    <div class="pdf-table-wrap">
+        <div class="table-description">Data extracted from report — ENERGY sector</div>
+        <table class="pdf-table">
+            <tr><td></td><td>-</td><td></td></tr>
+<tr><td>Pledged Shares</td><td></td><td>-</td></tr>
+
+        </table>
+    </div>
+    <div class="pdf-table-wrap">
+        <div class="table-description">Financial estimates for ENERGY sector companies</div>
+        <table class="pdf-table">
+            <tr><td></td><td></td><td></td><td></td><td>FY26E FY27E FY28E FY29E</td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td><td>27,951 72,347 121,241 167,125</td><td></td><td></td><td></td></tr>
+<tr><td>EBITDA</td><td>1,514</td><td>17,440</td><td>19,167</td><td>24,511</td><td>63,666</td><td>106,692</td><td>147,070</td></tr>
+<tr><td></td><td></td><td></td><td></td><td>8,228 9,874 11,849 14,219</td><td></td><td></td><td></td></tr>
+<tr><td>Diluted EPS (INR/sh)</td><td>0.2</td><td>0.4</td><td>0.8</td><td>1.0</td><td>1.2</td><td>1.4</td><td>1.7</td></tr>
+<tr><td></td><td></td><td></td><td></td><td>100.9 84.1 70.0 58.4</td><td></td><td></td><td></td></tr>
+<tr><td>EV/EBIDTA (x)</td><td>583.6</td><td>54.9</td><td>52.7</td><td>48.6</td><td>22.6</td><td>15.8</td><td>13.3</td></tr>
+<tr><td></td><td></td><td></td><td></td><td>3.3 5.3 5.5 5.7</td><td></td><td></td><td></td></tr>
+
+        </table>
+    </div>
+
+        
+        <ul id="more-3" style="display:none; padding-left:18px; margin-top:0;">
+            <li>Mar-28 TP. NGEL is the renewable energy arm of NTPC Ltd (NTPC), India’s</li>
+            <li>leading energy producer, with a strong presence in thermal energy. Through</li>
+        </ul>
+
+        <div class="card-footer">
+            <button class="bookmark-btn"
+                    data-text="We initiate coverage of NTPC Green Energy Ltd (NGEL) with a BUY and a TP"
+                    title="Bookmark this report"
+                    onclick="toggleBookmark(this, 'We initiate coverage of NTPC Green Energy Ltd (NGEL) with a BUY and a TP')"
+                    style="background:none; border:none; cursor:pointer;
+                           color:#333; padding:0;">
+                <svg width="12" height="16" viewBox="0 0 14 18" fill="currentColor">
+                    <path d="M0 0h14v18l-7-4.5L0 18z"/>
+                </svg>
+            </button>
+
+            <button onclick="toggleMore(3, this)"
+                    style="background:none; border:none; cursor:pointer;
+                           color:#666666; font-family:inherit; font-size:0.78em;
+                           letter-spacing:2px; text-transform:uppercase;">
+                READ MORE &#9660;
+            </button>
+        </div>
+    </div>
+    <div class="report-card">
+        <h2>Reports of my death are greatly exaggerated</h2>
+        <div class="title-meta">
+            <span class="date">Published: 19 March 2026</span>
             <span class="sector-tag">TECHNOLOGY</span>
         </div>
-        <ul class="bullets"><li>Key economic data available in the original report.</li></ul>
-        <div class="table-wrap"><div class="table-label">Key metrics — TECHNOLOGY sector</div><table class="pdf-table"><tr><td>Recommendation summary (INR)</td><td></td></tr><tr><td>T CS</td><td>BUY</td></tr><tr><td>CMP / Target</td><td>2,528 / 3,300</td></tr><tr><td>Infosys</td><td>BUY</td></tr><tr><td>CMP / Target</td><td>1,295 / 1,650</td></tr><tr><td>HCL Tech</td><td> BUY</td></tr><tr><td>CMP / Target</td><td>1,362/ 1,550</td></tr><tr><td>Wipro</td><td> BUY</td></tr><tr><td>CMP / Target</td><td>199 / 240</td></tr><tr><td>Tech Mahindra</td><td> BUY</td></tr><tr><td>CMP / Target</td><td>1,336 / 1,650</td></tr><tr><td>LTIMindtree</td><td>BUY</td></tr><tr><td>CMP / Target</td><td>4,317 / 6,100</td></tr><tr><td>Coforge</td><td>BUY</td></tr><tr><td>CMP / Target</td><td>1,140 / 2,100</td></tr><tr><td>Persistent</td><td>BUY</td></tr><tr><td>CMP / Target</td><td>4,780 / 6,000</td></tr><tr><td>Mphasis</td><td>BUY</td></tr><tr><td>CMP / Target</td><td>2.180 / 3,100</td></tr><tr><td>Hexaware</td><td> BUY</td></tr><tr><td>CMP / Target</td><td>442 / 550</td></tr></table></div><div class="table-wrap"><div class="table-label">Key metrics — TECHNOLOGY sector</div><table class="pdf-table"><tr><td>Stock price returns</td><td>CYTD</td><td>Last 6mn</td><td>Last 12mn</td></tr><tr><td>Nifty</td><td>-6.4%</td><td>-1.2%</td><td>8.5%</td></tr><tr><td>Nifty IT</td><td>-20.4%</td><td>-13.0%</td><td>-21.0%</td></tr><tr><td>TCS</td><td>-20.2%</td><td>-16.1%</td><td>-29.0%</td></tr><tr><td>Infosys</td><td>-19.0%</td><td>-9.4%</td><td>-23.7%</td></tr><tr><td>HCLT</td><td>-16.4%</td><td>-4.4%</td><td>-14.4%</td></tr><tr><td>Wipro</td><td>-25.8%</td><td>-19.8%</td><td>-31.7%</td></tr><tr><td>Tech Mahindra</td><td>-16.0%</td><td>-9.6%</td><td>-11.2%</td></tr><tr><td>LTIMindtree</td><td>-29.2%</td><td>-17.4%</td><td>-11.0%</td></tr><tr><td>Coforge</td><td>-30.1%</td><td>-29.9%</td><td>-23.7%</td></tr><tr><td>Persistent</td><td>-23.8%</td><td>-6.9%</td><td>-9.9%</td></tr><tr><td>Mphasis</td><td>-20.7%</td><td>-20.8%</td><td>-5.5%</td></tr><tr><td>Hexaware</td><td>-39.9%</td><td>-36.2%</td><td>-43.9%</td></tr></table></div>
+
         
+
+        <ul>
+            <li>So said Mark Twain, more than 100 years ago, perhaps prognosticating</li>
+            <li>the current state of Indian IT industry. Given the advent and adoption</li>
+        </ul>
+
         
+    <div class="pdf-table-wrap">
+        <div class="table-description">Valuation & coverage data for key TECHNOLOGY sector companies</div>
+        <table class="pdf-table">
+            <tr><td>Recommendation summary (INR)</td><td></td></tr>
+<tr><td>T CS</td><td>BUY</td></tr>
+<tr><td>CMP / Target</td><td>2,528 / 3,300</td></tr>
+<tr><td>Infosys</td><td>BUY</td></tr>
+<tr><td>CMP / Target</td><td>1,295 / 1,650</td></tr>
+<tr><td>HCL Tech</td><td> BUY</td></tr>
+<tr><td>CMP / Target</td><td>1,362/ 1,550</td></tr>
+<tr><td>Wipro</td><td> BUY</td></tr>
+<tr><td>CMP / Target</td><td>199 / 240</td></tr>
+<tr><td>Tech Mahindra</td><td> BUY</td></tr>
+<tr><td>CMP / Target</td><td>1,336 / 1,650</td></tr>
+<tr><td>LTIMindtree</td><td>BUY</td></tr>
+<tr><td>CMP / Target</td><td>4,317 / 6,100</td></tr>
+<tr><td>Coforge</td><td>BUY</td></tr>
+<tr><td>CMP / Target</td><td>1,140 / 2,100</td></tr>
+<tr><td>Persistent</td><td>BUY</td></tr>
+<tr><td>CMP / Target</td><td>4,780 / 6,000</td></tr>
+<tr><td>Mphasis</td><td>BUY</td></tr>
+<tr><td>CMP / Target</td><td>2.180 / 3,100</td></tr>
+<tr><td>Hexaware</td><td> BUY</td></tr>
+<tr><td>CMP / Target</td><td>442 / 550</td></tr>
+
+        </table>
+    </div>
+    <div class="pdf-table-wrap">
+        <div class="table-description">Data extracted from report — TECHNOLOGY sector</div>
+        <table class="pdf-table">
+            <tr><td>Stock price returns</td><td>CYTD</td><td>Last 6mn</td><td>Last 12mn</td></tr>
+<tr><td>Nifty</td><td>-6.4%</td><td>-1.2%</td><td>8.5%</td></tr>
+<tr><td>Nifty IT</td><td>-20.4%</td><td>-13.0%</td><td>-21.0%</td></tr>
+<tr><td>TCS</td><td>-20.2%</td><td>-16.1%</td><td>-29.0%</td></tr>
+<tr><td>Infosys</td><td>-19.0%</td><td>-9.4%</td><td>-23.7%</td></tr>
+<tr><td>HCLT</td><td>-16.4%</td><td>-4.4%</td><td>-14.4%</td></tr>
+<tr><td>Wipro</td><td>-25.8%</td><td>-19.8%</td><td>-31.7%</td></tr>
+<tr><td>Tech Mahindra</td><td>-16.0%</td><td>-9.6%</td><td>-11.2%</td></tr>
+<tr><td>LTIMindtree</td><td>-29.2%</td><td>-17.4%</td><td>-11.0%</td></tr>
+<tr><td>Coforge</td><td>-30.1%</td><td>-29.9%</td><td>-23.7%</td></tr>
+<tr><td>Persistent</td><td>-23.8%</td><td>-6.9%</td><td>-9.9%</td></tr>
+<tr><td>Mphasis</td><td>-20.7%</td><td>-20.8%</td><td>-5.5%</td></tr>
+<tr><td>Hexaware</td><td>-39.9%</td><td>-36.2%</td><td>-43.9%</td></tr>
+
+        </table>
+    </div>
+
+        
+        <ul id="more-4" style="display:none; padding-left:18px; margin-top:0;">
+            <li>of Gen-AI, obituaries of Indian IT Services industry are being written</li>
+            <li>all around. The concerns have been amplified by the sharp stock</li>
+        </ul>
+
         <div class="card-footer">
-            <button class="bookmark-btn" data-text="It Services   Sector Update Mar 26 Nuvama"
-                onclick="toggleBookmark(this,'It Services   Sector Update Mar 26 Nuvama')"
-                style="background:none;border:none;cursor:pointer;color:#333;padding:0;">
+            <button class="bookmark-btn"
+                    data-text="Reports of my death are greatly exaggerated"
+                    title="Bookmark this report"
+                    onclick="toggleBookmark(this, 'Reports of my death are greatly exaggerated')"
+                    style="background:none; border:none; cursor:pointer;
+                           color:#333; padding:0;">
                 <svg width="12" height="16" viewBox="0 0 14 18" fill="currentColor">
                     <path d="M0 0h14v18l-7-4.5L0 18z"/>
                 </svg>
             </button>
-            
+
+            <button onclick="toggleMore(4, this)"
+                    style="background:none; border:none; cursor:pointer;
+                           color:#666666; font-family:inherit; font-size:0.78em;
+                           letter-spacing:2px; text-transform:uppercase;">
+                READ MORE &#9660;
+            </button>
         </div>
     </div>
     <div class="report-card">
-        <h2>India Feb’26 Cpi Rises To 3 21% Yet Underlying Inflation Stays Subdued</h2>
+        <h2>GEOPOLITICAL INTELLIGENCE REVIEW | SPECIAL REPORT | DAY 17 | TWELFTH EDITION</h2>
         <div class="title-meta">
-            <span class="date">19 March 2026</span>
-            <span class="sector-tag">INFLATION</span>
+            <span class="date">Published: 19 March 2026</span>
+            <span class="sector-tag">ENERGY</span>
         </div>
-        <ul class="bullets"><li>Key economic data available in the original report.</li></ul>
-        <div class="table-wrap"><div class="table-label">Key metrics — INFLATION sector</div><table class="pdf-table"><tr><td></td><td>Y/y, %</td><td></td><td></td><td>Jan-26</td><td></td><td>Feb-26</td><td></td></tr><tr><td></td><td>Headline CPI</td><td></td><td></td><td>2.74</td><td></td><td>3.21</td><td></td></tr><tr><td></td><td>Food</td><td></td><td></td><td>2.12</td><td></td><td>3.35</td><td></td></tr><tr><td></td><td>o/w Vegetables</td><td></td><td></td><td>-3.49</td><td></td><td>2.79</td><td></td></tr><tr><td></td><td>Fuel</td><td></td><td></td><td>0.16</td><td></td><td>0.14</td><td></td></tr><tr><td></td><td>Core</td><td></td><td></td><td>3.37</td><td></td><td>3.41</td><td></td></tr><tr><td></td><td>CPI ex-veg</td><td></td><td></td><td>3.04</td><td></td><td>3.23</td><td></td></tr><tr><td></td><td>Core ex-gold</td><td></td><td></td><td>2.87</td><td></td><td>2.87</td><td></td></tr><tr><td></td><td>Core ex-gold ex-silver</td><td></td><td></td><td>1.94</td><td></td><td>1.90</td><td></td></tr></table></div><div class="table-wrap"><div class="table-label">Key metrics — INFLATION sector</div><table class="pdf-table"><tr><td></td><td></td><td></td><td>Sep'25</td><td></td><td></td><td>Oct'25</td><td></td><td></td><td>Nov'25</td><td></td><td></td><td>Dec'25</td><td></td><td></td><td>Jan'26</td><td></td><td></td><td>Feb'26</td><td></td><td></td><td>Mar'26*</td><td></td></tr><tr><td>Cereals</td><td></td><td></td><td>0.55</td><td></td><td></td><td>0.32</td><td></td><td></td><td>-0.13</td><td></td><td></td><td>0.13</td><td></td><td></td><td>-0.21</td><td></td><td></td><td>0.47</td><td></td><td></td><td>0.16</td><td></td></tr><tr><td>Pulses</td><td></td><td></td><td>-0.71</td><td></td><td></td><td>-0.36</td><td></td><td></td><td>0.03</td><td></td><td></td><td>0.05</td><td></td><td></td><td>0.06</td><td></td><td></td><td>1.98</td><td></td><td></td><td>0.67</td><td></td></tr><tr><td>Oils</td><td></td><td></td><td>0.83</td><td></td><td></td><td>0.29</td><td></td><td></td><td>-0.03</td><td></td><td></td><td>0.04</td><td></td><td></td><td>-0.03</td><td></td><td></td><td>0.43</td><td></td><td></td><td>0.24</td><td></td></tr><tr><td>Veggies**</td><td></td><td></td><td>-9.43</td><td></td><td></td><td>-3.81</td><td></td><td></td><td>6.52</td><td></td><td></td><td>4.49</td><td></td><td></td><td>-4.03</td><td></td><td></td><td>-14.11</td><td></td><td></td><td>-5.92</td><td></td></tr><tr><td>Milk</td><td></td><td></td><td>0.25</td><td></td><td></td><td>-0.02</td><td></td><td></td><td>0.02</td><td></td><td></td><td>-0.15</td><td></td><td></td><td>0.15</td><td></td><td></td><td>-0.14</td><td></td><td></td><td>0.08</td><td></td></tr><tr><td>Sugar</td><td></td><td></td><td>0.48</td><td></td><td></td><td>0.24</td><td></td><td></td><td>-0.04</td><td></td><td></td><td>0.00</td><td></td><td></td><td>-0.34</td><td></td><td></td><td>0.00</td><td></td><td></td><td>0.02</td><td></td></tr></table></div>
+
         
+
+        <ul>
+            <li>GEOPOLITICAL INTELLIGENCE REVIEW | SPECIAL REPORT | DAY 17 | TWELFTH EDITION</li>
+            <li>I DAY 17 | MARCH 16, 2026 | FIRST AIS TRANSIT | STOCKS RALLY | PAIN THRESHOLD CONVERGENCE ANALYSIS</li>
+        </ul>
+
         
+    <div class="pdf-table-wrap">
+        <div class="table-description">Data extracted from report — ENERGY sector</div>
+        <table class="pdf-table">
+            <tr><td>PAIN DIMENSION</td><td>CURRENT STATUS (D17)</td><td>THRESHOLD ASSESSMENT</td></tr>
+<tr><td>Military capacity</td><td>>60% of missile launchers destroyed; BM
+rate down 90% from peak; 10 BM D13
+volley drew on last high-capability clusters</td><td>THRESHOLD CROSSED — Cannot escalate back to Day 1
+volumes. The plateau IS Iran's ceiling. Iran is fighting with
+what it has left.</td></tr>
+<tr><td>Leadership</td><td>Khamenei not seen in public since
+election March 8 (Day 9 of absence); US
+$10M bounty; VP Vance/Hegseth confirm
+'wounded and likely disfigured'</td><td>THRESHOLD CROSSED — No functioning Supreme Leader
+= no one with legitimate authority to authorise nuclear
+decisions or major escalation. IRGC operating on
+pre-authorised mandate.</td></tr>
+<tr><td>Civilian suffering</td><td>1,444+ killed; 18,551+ wounded; 3.2
+million displaced (UNHCR); UNICEF:
+1,100+ children killed/injured; 270+ hrs
+internet blackout</td><td>APPROACHING CRITICAL — 3.2 million displaced is a
+revolution-scale figure. Tehran checkpoints being attacked by
+drones. Regime performing resilience while the public
+absorbs the cost.</td></tr>
+
+        </table>
+    </div>
+    <div class="pdf-table-wrap">
+        <div class="table-description">Data extracted from report — ENERGY sector</div>
+        <table class="pdf-table">
+            <tr><td>PAIN DIMENSION</td><td>CURRENT STATUS (D17)</td><td>THRESHOLD ASSESSMENT</td></tr>
+<tr><td>Economic</td><td>Kharg oil ops confirmed normal
+(deliberately spared by US); Iraq terminals
+offline; Hormuz near-blockade hurting
+Iran's own oil revenues</td><td>THRESHOLD CROSSED — Iran's Hormuz strategy is hurting
+Iran too. Iran earned its oil revenue by exporting through the
+strait it is now blockading. The longer Hormuz stays shut, the
+more Iran's own fiscal position deteriorates.</td></tr>
+<tr><td>Diplomatic isolation</td><td>UNSC resolution against Gulf attacks; Iran
+can't win UN votes; Even traditional allies
+UAE/Saudi condemning attacks; attacked
+Iraq (neighbour/ally)</td><td>THRESHOLD CROSSED — Iran has alienated its Gulf Arab
+neighbourhood by attacking civilian infrastructure in every
+GCC country. Post-war reconstruction of those relationships
+will be extremely costly.</td></tr>
+<tr><td>The Araghchi Signal</td><td>'War should end in a way that prevents it
+from happening again' — frame shift from
+'fight to victory' to 'guaranteed security'</td><td>CONFIRMATION — When a FM fighting a war starts talking
+about prevention architecture, they are describing terms, not
+objectives. Iran's pain threshold is crossed.</td></tr>
+
+        </table>
+    </div>
+
+        
+        <ul id="more-5" style="display:none; padding-left:18px; margin-top:0;">
+            <li>Day 17 Special Analysis — Wall Street Bets on a Deal: Dow +575pts, S&P; +1.3%; First Non-Iranian</li>
+            <li>AIS-Broadcasting Cargo Transits Hormuz (Abu Dhabi Das Crude); Bessent: US Allowing Iranian Tankers</li>
+        </ul>
+
         <div class="card-footer">
-            <button class="bookmark-btn" data-text="India Feb’26 Cpi Rises To 3 21% Yet Underlying Inflation Stays Subdued"
-                onclick="toggleBookmark(this,'India Feb’26 Cpi Rises To 3 21% Yet Underlying Inflation Stays Subdued')"
-                style="background:none;border:none;cursor:pointer;color:#333;padding:0;">
+            <button class="bookmark-btn"
+                    data-text="GEOPOLITICAL INTELLIGENCE REVIEW | SPECIAL REPORT | DAY 17 | TWELFTH EDITION"
+                    title="Bookmark this report"
+                    onclick="toggleBookmark(this, 'GEOPOLITICAL INTELLIGENCE REVIEW | SPECIAL REPORT | DAY 17 | TWELFTH EDITION')"
+                    style="background:none; border:none; cursor:pointer;
+                           color:#333; padding:0;">
                 <svg width="12" height="16" viewBox="0 0 14 18" fill="currentColor">
                     <path d="M0 0h14v18l-7-4.5L0 18z"/>
                 </svg>
             </button>
-            
+
+            <button onclick="toggleMore(5, this)"
+                    style="background:none; border:none; cursor:pointer;
+                           color:#666666; font-family:inherit; font-size:0.78em;
+                           letter-spacing:2px; text-transform:uppercase;">
+                READ MORE &#9660;
+            </button>
         </div>
-    </div></div>
+    </div>
+    <div class="report-card">
+        <h2>Feb’26 CPI jumps to 3.21% as food CPI goes up sharply</h2>
+        <div class="title-meta">
+            <span class="date">Published: 19 March 2026</span>
+            <span class="sector-tag">INFLATION</span>
+        </div>
+
+        
+
+        <ul>
+            <li>1. Data update: Consumer Price Index (CPI) inflation in February 2026 accelerated the upward</li>
+            <li>trend and printed 3.21% compared with 2.74% in January. While the headline inflation printed</li>
+        </ul>
+
+        
+    <div class="pdf-table-wrap">
+        <div class="table-description">Data extracted from report — INFLATION sector</div>
+        <table class="pdf-table">
+            <tr><td></td><td>Y/y, %</td><td></td><td></td><td>Jan-26</td><td></td><td>Feb-26</td><td></td></tr>
+<tr><td></td><td>Headline CPI</td><td></td><td></td><td>2.74</td><td></td><td>3.21</td><td></td></tr>
+<tr><td></td><td>Food</td><td></td><td></td><td>2.12</td><td></td><td>3.35</td><td></td></tr>
+<tr><td></td><td>o/w Vegetables</td><td></td><td></td><td>-3.49</td><td></td><td>2.79</td><td></td></tr>
+<tr><td></td><td>Fuel</td><td></td><td></td><td>0.16</td><td></td><td>0.14</td><td></td></tr>
+<tr><td></td><td>Core</td><td></td><td></td><td>3.37</td><td></td><td>3.41</td><td></td></tr>
+<tr><td></td><td>CPI ex-veg</td><td></td><td></td><td>3.04</td><td></td><td>3.23</td><td></td></tr>
+<tr><td></td><td>Core ex-gold</td><td></td><td></td><td>2.87</td><td></td><td>2.87</td><td></td></tr>
+<tr><td></td><td>Core ex-gold ex-silver</td><td></td><td></td><td>1.94</td><td></td><td>1.90</td><td></td></tr>
+
+        </table>
+    </div>
+    <div class="pdf-table-wrap">
+        <div class="table-description">Data extracted from report — INFLATION sector</div>
+        <table class="pdf-table">
+            <tr><td></td><td></td><td></td><td>Sep'25</td><td></td><td></td><td>Oct'25</td><td></td><td></td><td>Nov'25</td><td></td><td></td><td>Dec'25</td><td></td><td></td><td>Jan'26</td><td></td><td></td><td>Feb'26</td><td></td><td></td><td>Mar'26*</td><td></td></tr>
+<tr><td>Cereals</td><td></td><td></td><td>0.55</td><td></td><td></td><td>0.32</td><td></td><td></td><td>-0.13</td><td></td><td></td><td>0.13</td><td></td><td></td><td>-0.21</td><td></td><td></td><td>0.47</td><td></td><td></td><td>0.16</td><td></td></tr>
+<tr><td>Pulses</td><td></td><td></td><td>-0.71</td><td></td><td></td><td>-0.36</td><td></td><td></td><td>0.03</td><td></td><td></td><td>0.05</td><td></td><td></td><td>0.06</td><td></td><td></td><td>1.98</td><td></td><td></td><td>0.67</td><td></td></tr>
+<tr><td>Oils</td><td></td><td></td><td>0.83</td><td></td><td></td><td>0.29</td><td></td><td></td><td>-0.03</td><td></td><td></td><td>0.04</td><td></td><td></td><td>-0.03</td><td></td><td></td><td>0.43</td><td></td><td></td><td>0.24</td><td></td></tr>
+<tr><td>Veggies**</td><td></td><td></td><td>-9.43</td><td></td><td></td><td>-3.81</td><td></td><td></td><td>6.52</td><td></td><td></td><td>4.49</td><td></td><td></td><td>-4.03</td><td></td><td></td><td>-14.11</td><td></td><td></td><td>-5.92</td><td></td></tr>
+<tr><td>Milk</td><td></td><td></td><td>0.25</td><td></td><td></td><td>-0.02</td><td></td><td></td><td>0.02</td><td></td><td></td><td>-0.15</td><td></td><td></td><td>0.15</td><td></td><td></td><td>-0.14</td><td></td><td></td><td>0.08</td><td></td></tr>
+<tr><td>Sugar</td><td></td><td></td><td>0.48</td><td></td><td></td><td>0.24</td><td></td><td></td><td>-0.04</td><td></td><td></td><td>0.00</td><td></td><td></td><td>-0.34</td><td></td><td></td><td>0.00</td><td></td><td></td><td>0.02</td><td></td></tr>
+
+        </table>
+    </div>
+
+        
+        <ul id="more-6" style="display:none; padding-left:18px; margin-top:0;">
+            <li>at 11-month highs yet its stayed well within the comfort range. The reading was surprisingly</li>
+            <li>much above our estimate of 2.80% (pl refer our data preview report) though better aligned with</li>
+        </ul>
+
+        <div class="card-footer">
+            <button class="bookmark-btn"
+                    data-text="Feb’26 CPI jumps to 3.21% as food CPI goes up sharply"
+                    title="Bookmark this report"
+                    onclick="toggleBookmark(this, 'Feb’26 CPI jumps to 3.21% as food CPI goes up sharply')"
+                    style="background:none; border:none; cursor:pointer;
+                           color:#333; padding:0;">
+                <svg width="12" height="16" viewBox="0 0 14 18" fill="currentColor">
+                    <path d="M0 0h14v18l-7-4.5L0 18z"/>
+                </svg>
+            </button>
+
+            <button onclick="toggleMore(6, this)"
+                    style="background:none; border:none; cursor:pointer;
+                           color:#666666; font-family:inherit; font-size:0.78em;
+                           letter-spacing:2px; text-transform:uppercase;">
+                READ MORE &#9660;
+            </button>
+        </div>
+    </div>
+    <div class="report-card">
+        <h2>US-Iran Conflicts: Energy Supply Tightness & Geopolitical Risks</h2>
+        <div class="title-meta">
+            <span class="date">Published: 19 March 2026</span>
+            <span class="sector-tag">ENERGY</span>
+        </div>
+
+        
+
+        <ul>
+            <li>US-Iran Conflicts: Energy Supply Tightness & Geopolitical Risks</li>
+            <li>Near-Term Production Disruptions: Ongoing gas supply constraints could impact</li>
+        </ul>
+
+        
+    <div class="pdf-table-wrap">
+        <div class="table-description">Valuation & coverage data for key ENERGY sector companies</div>
+        <table class="pdf-table">
+            <tr><td>Company</td><td>Rating</td><td></td><td>Target</td><td></td></tr>
+<tr><td></td><td></td><td></td><td>price</td><td></td></tr>
+
+        </table>
+    </div>
+
+        
+        <ul id="more-7" style="display:none; padding-left:18px; margin-top:0;">
+            <li>automotive paint shops and forging operations that rely heavily on gas-based heating</li>
+            <li>processes, potentially leading to near-term production constraints across the auto</li>
+        </ul>
+
+        <div class="card-footer">
+            <button class="bookmark-btn"
+                    data-text="US-Iran Conflicts: Energy Supply Tightness & Geopolitical Risks"
+                    title="Bookmark this report"
+                    onclick="toggleBookmark(this, 'US-Iran Conflicts: Energy Supply Tightness & Geopolitical Risks')"
+                    style="background:none; border:none; cursor:pointer;
+                           color:#333; padding:0;">
+                <svg width="12" height="16" viewBox="0 0 14 18" fill="currentColor">
+                    <path d="M0 0h14v18l-7-4.5L0 18z"/>
+                </svg>
+            </button>
+
+            <button onclick="toggleMore(7, this)"
+                    style="background:none; border:none; cursor:pointer;
+                           color:#666666; font-family:inherit; font-size:0.78em;
+                           letter-spacing:2px; text-transform:uppercase;">
+                READ MORE &#9660;
+            </button>
+        </div>
+    </div>
+    </div>
+
     <div id="bookmark-panel">
         <h3>SAVED REPORTS</h3>
         <ul id="bookmark-list"></ul>
     </div>
+
     <script>
-    // Report bookmark karo / hatao
+
     function toggleBookmark(btn, text) {
-        let bm = JSON.parse(localStorage.getItem('bookmarks') || '[]');
-        const i = bm.indexOf(text);
-        if (i === -1) { bm.push(text); btn.style.color='#ff6600'; }
-        else { bm.splice(i,1); btn.style.color='#333'; }
-        localStorage.setItem('bookmarks', JSON.stringify(bm));
+        let bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+        const index = bookmarks.indexOf(text);
+        if (index === -1) {
+            bookmarks.push(text);
+            btn.style.color = '#ff6600';
+            btn.title = 'Saved!';
+        } else {
+            bookmarks.splice(index, 1);
+            btn.style.color = '#333';
+            btn.title = 'Bookmark this report';
+        }
+        localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
         showBookmarks();
     }
 
-    // SAVED panel mein list update karo
     function showBookmarks() {
-        let bm = JSON.parse(localStorage.getItem('bookmarks') || '[]');
-        document.getElementById('bookmark-list').innerHTML = bm.length === 0
-            ? '<li style="color:#333;cursor:default;">No saved reports</li>'
-            : bm.map((b,i)=>`<li onclick="scrollToReport('${b}')">${b}
-                <span onclick="event.stopPropagation();removeBookmark(${i})"
-                style="float:right;color:#333;">[X]</span></li>`).join('');
-        document.getElementById('bookmark-toggle').innerHTML =
-            bm.length > 0 ? 'SAVED ['+bm.length+']' : 'SAVED';
+        let bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+        const list = document.getElementById('bookmark-list');
+        const btn = document.getElementById('bookmark-toggle');
+        list.innerHTML = bookmarks.length === 0
+            ? '<li style="color:#555; cursor:default; padding:8px 0;">No saved reports</li>'
+            : bookmarks.map((b, i) => `
+                <li onclick="scrollToReport('${b}')" title="Go to report">
+                    ${b}
+                    <span onclick="event.stopPropagation(); removeBookmark(${i})"
+                          style="cursor:pointer; color:#555; float:right; margin-left:8px;">[X]</span>
+                </li>`).join('');
+        btn.innerHTML = bookmarks.length > 0 ? 'SAVED [' + bookmarks.length + ']' : 'SAVED';
     }
 
-    // Report pe scroll karo
-    function scrollToReport(t) {
-        document.querySelectorAll('.report-card').forEach(card=>{
-            const h = card.querySelector('h2');
-            if(h && h.innerText.toLowerCase().includes(t.toLowerCase().slice(0,20))) {
-                card.scrollIntoView({behavior:'smooth',block:'start'});
+    function scrollToReport(title) {
+        const cards = document.querySelectorAll('.report-card');
+        cards.forEach(card => {
+            const h2 = card.querySelector('h2');
+            if (h2 && h2.innerText.toLowerCase().includes(title.toLowerCase().slice(0, 20))) {
+                card.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 togglePanel();
             }
         });
     }
 
-    // SAVED panel open/close karo
     function togglePanel() {
-        const p = document.getElementById('bookmark-panel');
-        p.style.display = p.style.display==='none' ? 'block' : 'none';
+        const panel = document.getElementById('bookmark-panel');
+        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
     }
 
-    // Bookmark hatao
-    function removeBookmark(i) {
-        let bm = JSON.parse(localStorage.getItem('bookmarks') || '[]');
-        bm.splice(i,1);
-        localStorage.setItem('bookmarks', JSON.stringify(bm));
-        showBookmarks(); markSaved();
+    function removeBookmark(index) {
+        let bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+        bookmarks.splice(index, 1);
+        localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+        showBookmarks();
+        markSavedButtons();
     }
 
-    // Saved buttons ka color set karo (orange = saved)
-    function markSaved() {
-        let bm = JSON.parse(localStorage.getItem('bookmarks') || '[]');
-        document.querySelectorAll('.bookmark-btn').forEach(btn=>{
-            btn.style.color = bm.includes(btn.getAttribute('data-text')) ? '#ff6600' : '#333';
+    function markSavedButtons() {
+        let bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+        document.querySelectorAll('.bookmark-btn').forEach(btn => {
+            const text = btn.getAttribute('data-text');
+            btn.style.color = bookmarks.includes(text) ? '#ff6600' : '#333';
         });
     }
 
-    // READ MORE / READ LESS toggle
     function toggleMore(i, btn) {
-        const s = document.getElementById('more-'+i);
-        if(s.style.display==='none') {
-            s.style.display='block';
-            btn.innerHTML='READ LESS &#9650;';
+        const section = document.getElementById('more-' + i);
+        if (section.style.display === 'none') {
+            section.style.display = 'block';
+            btn.innerHTML = 'READ LESS &#9650;';
         } else {
-            s.style.display='none';
-            btn.innerHTML='READ MORE &#9660;';
+            section.style.display = 'none';
+            btn.innerHTML = 'READ MORE &#9660;';
         }
     }
 
-    // Page load hone pe saved buttons mark karo
-    window.onload = function() { showBookmarks(); markSaved(); };
-</script>
+    window.onload = function() {
+        showBookmarks();
+        markSavedButtons();
+    };
+
+    </script>
+
 </body>
 </html>
