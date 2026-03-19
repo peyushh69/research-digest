@@ -1,43 +1,11 @@
 {
-  "Axis Securities Update on Automobile Sector- .pdf": {
-    "title": "US-Iran Conflicts: Energy Supply Tightness & Geopolitical Risks",
-    "sector": "ENERGY",
-    "summary": null,
-    "points": [
-      "US-Iran Conflicts: Energy Supply Tightness & Geopolitical Risks",
-      "Near-Term Production Disruptions: Ongoing gas supply constraints could impact",
-      "automotive paint shops and forging operations that rely heavily on gas-based heating",
-      "processes, potentially leading to near-term production constraints across the auto"
-    ],
-    "tables": [
-      [
-        [
-          "Company",
-          "Rating",
-          "",
-          "Target",
-          ""
-        ],
-        [
-          "",
-          "",
-          "",
-          "price",
-          ""
-        ]
-      ]
-    ]
-  },
   "India_Feb\u201926_CPI_rises_to_3_21%_yet_underlying_inflation_stays_subdued.pdf": {
-    "title": "Feb\u201926 CPI jumps to 3.21% as food CPI goes up sharply",
+    "title": "India Feb\u201926 Cpi Rises To 3 21% Yet Underlying Inflation Stays Subdued",
     "sector": "INFLATION",
-    "summary": null,
     "points": [
-      "1. Data update: Consumer Price Index (CPI) inflation in February 2026 accelerated the upward",
-      "trend and printed 3.21% compared with 2.74% in January. While the headline inflation printed",
-      "at 11-month highs yet its stayed well within the comfort range. The reading was surprisingly",
-      "much above our estimate of 2.80% (pl refer our data preview report) though better aligned with"
+      "Key economic data available in the original report."
     ],
+    "summary": null,
     "tables": [
       [
         [
@@ -310,73 +278,13 @@
       ]
     ]
   },
-  "Iran War Day17 JasperCreed.pdf": {
-    "title": "GEOPOLITICAL INTELLIGENCE REVIEW | SPECIAL REPORT | DAY 17 | TWELFTH EDITION",
-    "sector": "ENERGY",
-    "summary": null,
-    "points": [
-      "GEOPOLITICAL INTELLIGENCE REVIEW | SPECIAL REPORT | DAY 17 | TWELFTH EDITION",
-      "I DAY 17 | MARCH 16, 2026 | FIRST AIS TRANSIT | STOCKS RALLY | PAIN THRESHOLD CONVERGENCE ANALYSIS",
-      "Day 17 Special Analysis \u2014 Wall Street Bets on a Deal: Dow +575pts, S&P; +1.3%; First Non-Iranian",
-      "AIS-Broadcasting Cargo Transits Hormuz (Abu Dhabi Das Crude); Bessent: US Allowing Iranian Tankers"
-    ],
-    "tables": [
-      [
-        [
-          "PAIN DIMENSION",
-          "CURRENT STATUS (D17)",
-          "THRESHOLD ASSESSMENT"
-        ],
-        [
-          "Military capacity",
-          ">60% of missile launchers destroyed; BM\nrate down 90% from peak; 10 BM D13\nvolley drew on last high-capability clusters",
-          "THRESHOLD CROSSED \u2014 Cannot escalate back to Day 1\nvolumes. The plateau IS Iran's ceiling. Iran is fighting with\nwhat it has left."
-        ],
-        [
-          "Leadership",
-          "Khamenei not seen in public since\nelection March 8 (Day 9 of absence); US\n$10M bounty; VP Vance/Hegseth confirm\n'wounded and likely disfigured'",
-          "THRESHOLD CROSSED \u2014 No functioning Supreme Leader\n= no one with legitimate authority to authorise nuclear\ndecisions or major escalation. IRGC operating on\npre-authorised mandate."
-        ],
-        [
-          "Civilian suffering",
-          "1,444+ killed; 18,551+ wounded; 3.2\nmillion displaced (UNHCR); UNICEF:\n1,100+ children killed/injured; 270+ hrs\ninternet blackout",
-          "APPROACHING CRITICAL \u2014 3.2 million displaced is a\nrevolution-scale figure. Tehran checkpoints being attacked by\ndrones. Regime performing resilience while the public\nabsorbs the cost."
-        ]
-      ],
-      [
-        [
-          "PAIN DIMENSION",
-          "CURRENT STATUS (D17)",
-          "THRESHOLD ASSESSMENT"
-        ],
-        [
-          "Economic",
-          "Kharg oil ops confirmed normal\n(deliberately spared by US); Iraq terminals\noffline; Hormuz near-blockade hurting\nIran's own oil revenues",
-          "THRESHOLD CROSSED \u2014 Iran's Hormuz strategy is hurting\nIran too. Iran earned its oil revenue by exporting through the\nstrait it is now blockading. The longer Hormuz stays shut, the\nmore Iran's own fiscal position deteriorates."
-        ],
-        [
-          "Diplomatic isolation",
-          "UNSC resolution against Gulf attacks; Iran\ncan't win UN votes; Even traditional allies\nUAE/Saudi condemning attacks; attacked\nIraq (neighbour/ally)",
-          "THRESHOLD CROSSED \u2014 Iran has alienated its Gulf Arab\nneighbourhood by attacking civilian infrastructure in every\nGCC country. Post-war reconstruction of those relationships\nwill be extremely costly."
-        ],
-        [
-          "The Araghchi Signal",
-          "'War should end in a way that prevents it\nfrom happening again' \u2014 frame shift from\n'fight to victory' to 'guaranteed security'",
-          "CONFIRMATION \u2014 When a FM fighting a war starts talking\nabout prevention architecture, they are describing terms, not\nobjectives. Iran's pain threshold is crossed."
-        ]
-      ]
-    ]
-  },
   "IT+Services+-+sector+update-Mar-26-NUVAMA.pdf": {
-    "title": "Reports of my death are greatly exaggerated",
+    "title": "It Services   Sector Update Mar 26 Nuvama",
     "sector": "TECHNOLOGY",
-    "summary": null,
     "points": [
-      "So said Mark Twain, more than 100 years ago, perhaps prognosticating",
-      "the current state of Indian IT industry. Given the advent and adoption",
-      "of Gen-AI, obituaries of Indian IT Services industry are being written",
-      "all around. The concerns have been amplified by the sharp stock"
+      "Key economic data available in the original report."
     ],
+    "summary": null,
     "tables": [
       [
         [
@@ -546,260 +454,13 @@
       ]
     ]
   },
-  "NTPC Green - IC - HSIE-202603171036475563059.pdf": {
-    "title": "We initiate coverage of NTPC Green Energy Ltd (NGEL) with a BUY and a TP",
-    "sector": "ENERGY",
-    "summary": null,
-    "points": [
-      "We initiate coverage of NTPC Green Energy Ltd (NGEL) with a BUY and a TP",
-      "of INR 121 at 14.5x EV/EBITDA FY29 EBIDTA discounted at 12% to arrive at",
-      "Mar-28 TP. NGEL is the renewable energy arm of NTPC Ltd (NTPC), India\u2019s",
-      "leading energy producer, with a strong presence in thermal energy. Through"
-    ],
-    "tables": [
-      [
-        [
-          "",
-          "-",
-          ""
-        ],
-        [
-          "Pledged Shares",
-          "",
-          "-"
-        ]
-      ],
-      [
-        [
-          "",
-          "",
-          "",
-          "",
-          "FY26E FY27E FY28E FY29E",
-          "",
-          "",
-          ""
-        ],
-        [
-          "",
-          "",
-          "",
-          "",
-          "27,951 72,347 121,241 167,125",
-          "",
-          "",
-          ""
-        ],
-        [
-          "EBITDA",
-          "1,514",
-          "17,440",
-          "19,167",
-          "24,511",
-          "63,666",
-          "106,692",
-          "147,070"
-        ],
-        [
-          "",
-          "",
-          "",
-          "",
-          "8,228 9,874 11,849 14,219",
-          "",
-          "",
-          ""
-        ],
-        [
-          "Diluted EPS (INR/sh)",
-          "0.2",
-          "0.4",
-          "0.8",
-          "1.0",
-          "1.2",
-          "1.4",
-          "1.7"
-        ],
-        [
-          "",
-          "",
-          "",
-          "",
-          "100.9 84.1 70.0 58.4",
-          "",
-          "",
-          ""
-        ],
-        [
-          "EV/EBIDTA (x)",
-          "583.6",
-          "54.9",
-          "52.7",
-          "48.6",
-          "22.6",
-          "15.8",
-          "13.3"
-        ],
-        [
-          "",
-          "",
-          "",
-          "",
-          "3.3 5.3 5.5 5.7",
-          "",
-          "",
-          ""
-        ]
-      ]
-    ]
-  },
-  "PL_Capital_Update_on_Oil_&_Gas_Iran\u2019s_strategic_lever_\u2013_Strait_of.pdf": {
-    "title": "Bharat Petroleum Corporation",
-    "sector": "ENERGY",
-    "summary": null,
-    "points": [
-      "across the oil value chain. The discussion focused on the ongoing crisis in the global oil",
-      "and gas market. The disruption is expected to create an estimated ~10 mb/d supply",
-      "gap by April 1, 2026, with the shortage more pronounced in refined products than",
-      "crude oil. Several major Middle Eastern refineries have reportedly been damaged,"
-    ],
-    "tables": [
-      [
-        [
-          "March 15, 2026",
-          "",
-          "",
-          ""
-        ],
-        [
-          "Coverage Universe",
-          "",
-          "",
-          ""
-        ],
-        [
-          "Name of the Company",
-          "Rating",
-          "CMP",
-          "TP"
-        ],
-        [
-          "",
-          "",
-          "(INR)",
-          "(INR)"
-        ],
-        [
-          "Bharat Petroleum Corporation",
-          "Accumulate",
-          "319",
-          "406"
-        ],
-        [
-          "GAIL (India)",
-          "BUY",
-          "148",
-          "190"
-        ],
-        [
-          "Gujarat Gas",
-          "Accumulate",
-          "374",
-          "422"
-        ],
-        [
-          "Gujarat State Petronet",
-          "Hold",
-          "272",
-          "296"
-        ],
-        [
-          "Hindustan Petroleum Corporation",
-          "Accumulate",
-          "369",
-          "457"
-        ],
-        [
-          "Indraprastha Gas",
-          "Accumulate",
-          "157",
-          "191"
-        ],
-        [
-          "Indian Oil Corporation",
-          "Accumulate",
-          "157",
-          "195"
-        ],
-        [
-          "Mahanagar Gas",
-          "Accumulate",
-          "1,035",
-          "1,305"
-        ],
-        [
-          "Mangalore Refinery &",
-          "Accumulate",
-          "178",
-          "162"
-        ],
-        [
-          "Petrochemicals",
-          "",
-          "",
-          ""
-        ],
-        [
-          "Oil India",
-          "Accumulate",
-          "471",
-          "527"
-        ],
-        [
-          "Oil & Natural Gas Corporation",
-          "Accumulate",
-          "264",
-          "297"
-        ],
-        [
-          "Petronet LNG",
-          "Hold",
-          "286",
-          "288"
-        ],
-        [
-          "Reliance Industries",
-          "BUY",
-          "1,381",
-          "1,688"
-        ]
-      ],
-      [
-        [
-          "Refinery",
-          "Country",
-          "Status / Damage Type",
-          "Impacted Volume (kbpd)"
-        ],
-        [
-          "Ruwais",
-          "UAE",
-          "Shut down; Direct drone strike/fire (March 10)",
-          "~830"
-        ]
-      ]
-    ]
-  },
   "Systematix Update on Oil & Gas- .pdf": {
-    "title": "Price and volume risk at the peak",
+    "title": "Systematix Update On Oil & Gas  ",
     "sector": "ENERGY",
-    "summary": null,
     "points": [
-      "The global crude market has entered a phase of heightened volatility in last 2",
-      "weeks crossing $100/bbl as we write, driven primarily by 1) destruction of oil & gas",
-      "assets amid West Asia War triggered a strong risk premium in prices, and 2)",
-      "tightening supply dynamics owing to closure of Strait of Hormuz. Global rig activity"
+      "Key economic data available in the original report."
     ],
+    "summary": null,
     "tables": [
       [
         [
@@ -807,14 +468,12 @@
           "",
           "Mkt Cap",
           "",
-          "TP (Rs)",
-          "Rating"
+          "TP (Rs)"
         ],
         [
           "",
           "",
           "(Rs bn)",
-          "",
           "",
           ""
         ],
@@ -823,260 +482,619 @@
           "18,808",
           "",
           "",
-          "1,700",
-          "BUY"
+          "1,700"
         ],
         [
           "DEEPIND",
           "22",
           "",
           "",
-          "693",
-          "BUY"
+          "693"
         ],
         [
           "GOLI",
           "50",
           "",
           "",
-          "1,660",
-          "BUY"
+          "1,660"
         ],
         [
           "MGL",
           "104",
           "",
           "",
-          "1,374",
-          "BUY"
+          "1,374"
         ],
         [
           "GUJGAS",
           "265",
           "",
           "",
-          "447",
-          "HOLD"
+          "447"
         ],
         [
           "IGL",
           "227",
           "",
           "",
-          "226",
-          "BUY"
+          "226"
         ],
         [
           "GAIL",
           "1,003",
           "",
           "",
-          "176",
-          "HOLD"
+          "176"
         ],
         [
           "PLNG",
           "445",
           "",
           "",
-          "342",
-          "BUY"
+          "342"
         ]
       ],
       [
         [
-          "Companies",
-          "CMP",
-          "Reco",
-          "TP",
-          "P/E",
+          "Name",
+          "CMP (Rs)",
+          "",
+          "% Price",
           "",
           "",
-          "EV/EBITDA",
+          "% Price",
           "",
           "",
-          "P/BV (Rs)",
+          "% Price\nChange\n3 Months",
+          "% Price\nChange\n6 Months",
           "",
           "",
-          "RoE (%)",
+          "% Price",
+          "",
+          "",
+          "% Price",
+          "",
+          "",
+          "% Price",
+          "",
+          "",
+          "% Price\nChange\n10 Yr"
+        ],
+        [
+          "",
+          "",
+          "",
+          "Change",
+          "",
+          "",
+          "Change",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "Change",
+          "",
+          "",
+          "Change",
+          "",
+          "",
+          "Change",
+          "",
           "",
           ""
         ],
         [
           "",
-          "(Rs)",
           "",
-          "(Rs)",
-          "FY26E",
-          "FY27E",
-          "FY28E",
-          "FY26E",
-          "FY27E",
-          "FY28E",
-          "FY26E",
-          "FY27E",
-          "FY28E",
-          "FY26E",
-          "FY27E",
-          "FY28E"
+          "",
+          "Week",
+          "",
+          "",
+          "1 Month",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "1 Yr",
+          "",
+          "",
+          "YTD",
+          "",
+          "",
+          "5 Yr",
+          "",
+          "",
+          ""
         ],
         [
-          "Reliance\nIndustries Ltd",
+          "Reliance Industries Ltd",
           "1,390",
-          "BUY",
-          "1,700",
-          "25.1",
-          "22.8",
-          "20.8",
-          "10.8",
-          "10.0",
-          "9.1",
-          "2.1",
-          "1.9",
-          "1.8",
-          "8.9",
-          "8.4",
-          "8.5"
+          "0.1",
+          "",
+          "",
+          "(4.1)",
+          "",
+          "",
+          "(10.7)",
+          "",
+          "(0.4)",
+          "",
+          "10.6",
+          "",
+          "",
+          "(11.5)",
+          "",
+          "",
+          "42.7",
+          "",
+          "",
+          "504.1",
+          ""
         ],
         [
           "GAIL India Ltd",
           "153",
-          "HOLD",
-          "176",
-          "14.6",
-          "11.4",
-          "10.5",
-          "10.1",
-          "8.1",
-          "7.3",
-          "1.5",
-          "1.4",
-          "1.3",
-          "10.1",
-          "12.1",
-          "12.3"
+          "(2.7)",
+          "",
+          "",
+          "(6.8)",
+          "",
+          "",
+          "(10.6)",
+          "",
+          "(14.6)",
+          "",
+          "(4.2)",
+          "",
+          "",
+          "(11.4)",
+          "",
+          "",
+          "55.9",
+          "",
+          "",
+          "137.2",
+          ""
         ],
         [
-          "Petronet LNG",
+          "Petronet LNG Ltd",
           "297",
-          "BUY",
-          "342",
-          "11.4",
-          "10.2",
-          "9.6",
-          "6.3",
-          "5.7",
-          "5.4",
-          "2.1",
-          "1.9",
-          "1.7",
-          "18.2",
-          "18.3",
-          "17.6"
+          "1.3",
+          "",
+          "",
+          "(0.1)",
+          "",
+          "",
+          "10.4",
+          "",
+          "6.8",
+          "",
+          "4.1",
+          "",
+          "",
+          "4.5",
+          "",
+          "",
+          "22.7",
+          "",
+          "",
+          "138.6",
+          ""
         ],
         [
           "Gujarat Gas Ltd",
           "385",
-          "HOLD",
-          "447",
-          "21.2",
-          "20.0",
-          "18.8",
-          "12.8",
-          "11.9",
-          "10.7",
-          "2.9",
-          "2.7",
-          "2.4",
-          "13.6",
-          "13.4",
-          "12.6"
+          "(3.0)",
+          "",
+          "",
+          "(9.4)",
+          "",
+          "",
+          "(2.6)",
+          "",
+          "(10.6)",
+          "",
+          "(0.0)",
+          "",
+          "",
+          "(6.5)",
+          "",
+          "",
+          "(25.7)",
+          "",
+          "",
+          "285.0",
+          ""
         ],
         [
-          "Indraprastha\nGas Ltd",
+          "Indraprastha Gas Ltd",
           "162",
-          "BUY",
-          "226",
-          "14.6",
-          "11.9",
-          "10.9",
-          "9.3",
-          "7.2",
-          "6.4",
-          "2.2",
-          "1.9",
-          "1.7",
-          "15.0",
-          "16.3",
-          "15.8"
+          "1.1",
+          "",
+          "",
+          "(4.5)",
+          "",
+          "",
+          "(13.3)",
+          "",
+          "(24.6)",
+          "",
+          "(14.0)",
+          "",
+          "",
+          "(16.8)",
+          "",
+          "",
+          "(36.3)",
+          "",
+          "",
+          "209.6",
+          ""
         ],
         [
-          "Mahanagar Gas",
+          "Mahanagar Gas Ltd",
           "1,049",
-          "BUY",
-          "1,374",
-          "10.7",
-          "11.0",
-          "10.7",
-          "5.4",
-          "5.0",
-          "4.4",
-          "1.6",
-          "1.5",
-          "1.4",
-          "15.0",
-          "13.5",
-          "12.8"
+          "(4.4)",
+          "",
+          "",
+          "(9.1)",
+          "",
+          "",
+          "(6.7)",
+          "",
+          "(19.5)",
+          "",
+          "(19.3)",
+          "",
+          "",
+          "(7.7)",
+          "",
+          "",
+          "(13.2)",
+          "",
+          "",
+          "149.2",
+          ""
         ],
         [
-          "Gulf Oil\nLubricants India",
+          "Gulf Oil Lubricants India Ltd",
           "1,012",
-          "BUY",
-          "1,660",
-          "14.4",
-          "11.5",
-          "10.3",
-          "7.0",
-          "5.5",
-          "4.3",
-          "3.1",
-          "2.9",
-          "2.6",
-          "22.7",
-          "26.2",
-          "26.5"
+          "(1.0)",
+          "",
+          "",
+          "(12.6)",
+          "",
+          "",
+          "(12.7)",
+          "",
+          "(22.2)",
+          "",
+          "(16.5)",
+          "",
+          "",
+          "(15.7)",
+          "",
+          "",
+          "37.9",
+          "",
+          "",
+          "112.8",
+          ""
         ],
         [
           "Deep Industries",
           "340",
-          "BUY",
-          "693",
-          "8.3",
-          "7.0",
-          "5.9",
-          "6.5",
-          "5.8",
-          "4.4",
-          "1.3",
-          "1.1",
+          "(3.4)",
+          "",
+          "",
+          "(16.8)",
+          "",
+          "",
+          "(23.0)",
+          "",
+          "(36.3)",
+          "",
+          "(25.8)",
+          "",
+          "",
+          "(26.3)",
+          "",
+          "",
+          "1,697.1",
+          "",
+          "",
+          "1,697.1",
+          ""
+        ],
+        [
+          "Indian Oil Corp Ltd",
+          "160",
+          "(6.6)",
+          "",
+          "",
+          "(10.0)",
+          "",
+          "",
+          "(2.1)",
+          "",
+          "12.4",
+          "",
+          "27.9",
+          "",
+          "",
+          "(3.7)",
+          "",
+          "",
+          "137.2",
+          "",
+          "",
+          "149.6",
+          ""
+        ],
+        [
+          "Bharat Petroleum Corp Ltd",
+          "326",
+          "(9.4)",
+          "",
+          "",
+          "(13.6)",
+          "",
+          "",
+          "(10.6)",
+          "",
+          "2.6",
+          "",
+          "22.6",
+          "",
+          "",
+          "(15.0)",
+          "",
+          "",
+          "42.7",
+          "",
+          "",
+          "143.4",
+          ""
+        ],
+        [
+          "Hindustan Petroleum Corp Ltd",
+          "384",
+          "(8.2)",
+          "",
+          "",
+          "(15.1)",
+          "",
+          "",
+          "(16.5)",
+          "",
+          "(3.7)",
+          "",
+          "17.3",
+          "",
+          "",
+          "(23.1)",
+          "",
+          "",
+          "138.7",
+          "",
+          "",
+          "258.6",
+          ""
+        ],
+        [
+          "Chennai Petroleum Corp Ltd",
+          "945",
+          "(4.7)",
+          "",
+          "",
+          "5.3",
+          "",
+          "",
+          "1.9",
+          "",
+          "28.6",
+          "",
+          "70.9",
+          "",
+          "",
+          "13.0",
+          "",
+          "",
+          "745.2",
+          "",
+          "",
+          "373.9",
+          ""
+        ],
+        [
+          "Mangalore Refinery & Petrochemicals Ltd",
+          "191",
+          "(2.5)",
+          "",
+          "",
+          "0.1",
+          "",
+          "",
+          "28.5",
+          "",
+          "51.3",
+          "",
+          "70.7",
+          "",
+          "",
+          "25.9",
+          "",
+          "",
+          "356.9",
+          "",
+          "",
+          "231.2",
+          ""
+        ],
+        [
+          "Oil & Natural Gas Corp Ltd",
+          "270",
+          "(2.2)",
+          "",
+          "",
+          "(2.2)",
+          "",
+          "",
+          "13.6",
+          "",
+          "15.9",
+          "",
+          "20.5",
+          "",
+          "",
+          "12.5",
+          "",
+          "",
+          "135.0",
+          "",
+          "",
+          "94.7",
+          ""
+        ],
+        [
+          "Oil India Ltd",
+          "479",
+          "0.1",
+          "",
+          "",
           "1.0",
-          "14.8",
-          "15.3",
-          "15.6"
+          "",
+          "",
+          "18.6",
+          "",
+          "20.3",
+          "",
+          "30.7",
+          "",
+          "",
+          "13.0",
+          "",
+          "",
+          "445.2",
+          "",
+          "",
+          "364.0",
+          ""
+        ],
+        [
+          "Gujarat State Petronet Ltd",
+          "278",
+          "(4.0)",
+          "",
+          "",
+          "(10.3)",
+          "",
+          "",
+          "(3.8)",
+          "",
+          "(9.7)",
+          "",
+          "1.5",
+          "",
+          "",
+          "(9.1)",
+          "",
+          "",
+          "0.1",
+          "",
+          "",
+          "120.8",
+          ""
+        ],
+        [
+          "Adani Total Gas Ltd",
+          "609",
+          "26.0",
+          "",
+          "",
+          "13.6",
+          "",
+          "",
+          "2.6",
+          "",
+          "0.6",
+          "",
+          "1.4",
+          "",
+          "",
+          "7.5",
+          "",
+          "",
+          "(17.5)",
+          "",
+          "",
+          "705.6",
+          ""
+        ],
+        [
+          "BSE OIL & GAS",
+          "27,496",
+          "(2.8)",
+          "",
+          "",
+          "(5.6)",
+          "",
+          "",
+          "(1.7)",
+          "",
+          "4.8",
+          "",
+          "15.9",
+          "",
+          "",
+          "(4.2)",
+          "",
+          "",
+          "73.0",
+          "",
+          "",
+          "212.9",
+          ""
+        ],
+        [
+          "NSE Nifty 50 Index",
+          "23,633",
+          "(4.6)",
+          "",
+          "",
+          "(8.4)",
+          "",
+          "",
+          "(9.3)",
+          "",
+          "(5.9)",
+          "",
+          "5.2",
+          "",
+          "",
+          "(9.6)",
+          "",
+          "",
+          "57.2",
+          "",
+          "",
+          "213.5",
+          ""
         ]
       ]
     ]
   },
   "WPI-Inflation_Mar-2026.pdf": {
-    "title": "WPI: Touches 11-month high",
+    "title": "Wpi Inflation Mar 2026",
     "sector": "INFLATION",
-    "summary": null,
     "points": [
-      "Headline WPI for February came at 2.13% YoY from 1.8% YoY in January. On a sequential",
-      "basis, WPI eased slightly at 0.25% from 0.4% as some reprieve was seen in manufactured",
-      "products (0.5%) and primary articles (-0.5%). Within Primary Articles, sequential upticks were",
-      "seen in non-food (0.8%) and crude (4.2%) while food (-1.3%) and mineral prices witnessed a"
+      "Key economic data available in the original report."
     ],
+    "summary": null,
     "tables": []
   }
 }

@@ -1,247 +1,364 @@
-# ============================================================
-#  QUANTIS - RESEARCH DIGEST GENERATOR
-#  How to run: python generate.py
-#  What it does: reads PDFs from pdfs/ folder, builds index.html
-#  Extracts: AI summary + key points + tables from each PDF
-# ============================================================
+# ================================================================
+#  QUANTIS — RESEARCH DIGEST GENERATOR
+#  
+#  Yeh file kya karti hai:
+#  1. pdfs/ folder se PDFs padhti hai
+#  2. Har PDF se title, bullet points, summary, tables nikalti hai
+#  3. Gemini AI se smart summaries banati hai
+#  4. Live market data (Nifty, Sensex etc.) fetch karti hai
+#  5. Sab kuch ek website (index.html) mein daalti hai
+#
+#  Kaise chalayein:
+#  Terminal mein likho:  python generate.py
+#
+#  Zaruri folders:
+#  - pdfs/          ← apni PDF files yahan rakho
+#  - .env           ← API key yahan honi chahiye
+#  - processed.json ← automatically banta hai, delete karo toh sab reprocess hoga
+# ================================================================
 
-import fitz
-import pdfplumber
-import os
-import json
-import yfinance as yf
-from google import genai
-from datetime import datetime
+
+# ================================================================
+#  LIBRARIES — yeh sab install honi chahiye
+#  Install karne ke liye: pip install pymupdf pdfplumber yfinance google-genai python-dotenv
+# ================================================================
+
+import fitz          # PyMuPDF — PDF se text nikalne ke liye
+import pdfplumber    # PDF se tables nikalne ke liye
+import os            # File system ke liye
+import json          # Data save/load ke liye
+import yfinance as yf               # Live market data ke liye
+from google import genai            # Gemini AI ke liye
+from datetime import datetime       # Aaj ki date ke liye
+from dotenv import load_dotenv      # .env file se API key load karne ke liye
 
 
-# ============================================================
-#  *** PUT YOUR GEMINI API KEY HERE ***
-# ============================================================
+# ================================================================
+#  STEP 1: API KEY SETUP
+#
+#  API key .env file se automatically load hoti hai
+#  .env file mein yeh hona chahiye:
+#  GEMINI_API_KEY=AIzaSy...tumhari_key_yahan
+#
+#  KABHI BHI yahan seedha key mat likho — woh GitHub pe public ho jaayegi!
+# ================================================================
+
+load_dotenv()  # .env file load karo
+
+# GOOGLE_API_KEY conflict fix — agar purani key system mein set hai toh remove karo
+# Warna Gemini dono keys dekh ke confuse hota hai
+os.environ.pop("GOOGLE_API_KEY", None)
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+WEBSITE_TITLE  = "Quantis"
 
 
-# ============================================================
-#  SECTION 1: PDF TEXT EXTRACTOR
-#  DO NOT TOUCH — opens PDF and returns all text
-# ============================================================
+# ================================================================
+#  STEP 2: GEMINI AI HELPER
+#
+#  Yeh function Gemini API ko call karta hai
+#  Har jagah se — title, bullets, summary, table description —
+#  sab is ek function se jaata hai
+#
+#  Agar API key galat hai ya internet nahi hai toh None return karega
+# ================================================================
 
-def pdf_se_text_nikalo(filepath):
-    doc = fitz.open(filepath)
-    poora_text = ""
-    for page in doc:
-        poora_text += page.get_text()
-    doc.close()
-    return poora_text
-
-
-# ============================================================
-#  SECTION 1B: PDF TITLE EXTRACTOR
-#  Picks the first meaningful line from PDF as the report title
-#  Falls back to cleaned filename if nothing good found
-# ============================================================
-
-TITLE_SKIP_WORDS = [
-    'bloomberg', 'reuters', 'research is also available', 'nuvama',
-    'systematix', 'edelweiss', 'motilal', 'kotak', 'hdfc securities',
-    'icici', 'axis securities', 'disclaimer', 'confidential',
-    'page', 'www', 'http', '@', 'tel:', 'fax:', 'mob:', 'phone:',
-    'sebi', 'registered', 'member', 'bse', 'nse', 'india limited',
-    'private limited', 'pvt ltd', 'kindly', 'please note',
-    'unsubscribe', 'click here', 'terms', 'conditions',
-    'investors are advised', 'refer disclosures', 'institutional equities',
-    'pl capital', 'hsie', 'research report', 'equity research',
-    'all rights reserved', 'copyright', 'for private circulation',
-    'not for public', 'important disclosures',
-    'sector rating', 'overweight', 'underweight', 'outperform',
-    'rating:', 'coverage universe', 'price target',
-]
-
-def title_nikalo(text, filename):
-    lines = text.split('\n')
-    for line in lines:
-        line = line.strip()
-        if len(line) < 25:
-            continue
-        if line[0].isdigit() and len(line) < 40:
-            continue
-        if any(word in line.lower() for word in TITLE_SKIP_WORDS):
-            continue
-        # Skip lines that are mostly punctuation or numbers
-        alpha_count = sum(1 for c in line if c.isalpha())
-        if alpha_count < 15:
-            continue
-        return line[:130]
-    # Fallback: clean filename
-    name = filename.replace('.pdf', '').replace('_', ' ').replace('+', ' ').replace('-', ' ')
-    return name.title()
-
-
-# ============================================================
-#  SECTION 1C: SECTOR AUTO-DETECT
-#  Detects sector from filename and first 1000 chars of content
-# ============================================================
-
-SECTOR_KEYWORDS = {
-    'INFLATION':   ['wpi', 'cpi', 'inflation', 'price index', 'iip'],
-    'ENERGY':      ['oil', 'gas', 'crude', 'opec', 'coal', 'renewable', 'ntpc', 'power', 'energy', 'strait', 'petroleum', 'refin', 'ongc', 'bpcl', 'iocl'],
-    'BANKING':     ['bank', 'nbfc', 'rbi', 'credit', 'npa', 'deposit', 'loan', 'repo rate'],
-    'TECHNOLOGY':  ['it services', 'software', 'saas', 'cloud', 'semiconductor', 'infosys', 'wipro', 'tcs', 'hcl tech'],
-    'AUTO':        ['auto', 'vehicle', 'ev ', 'electric vehicle', 'passenger', 'two-wheeler', 'automobile', 'maruti', 'tata motors'],
-    'PHARMA':      ['pharma', 'drug', 'fda', 'clinical', 'api ', 'hospital', 'healthcare', 'biotech'],
-    'FMCG':        ['fmcg', 'consumer goods', 'food', 'beverage', 'rural demand', 'volume growth', 'hindustan unilever'],
-    'REAL ESTATE': ['real estate', 'realty', 'housing', 'property', 'construction', 'cement'],
-    'METALS':      ['steel', 'metal', 'aluminium', 'copper', 'iron ore', 'zinc'],
-    'TELECOM':     ['telecom', 'arpu', 'subscriber', '5g', 'jio', 'airtel', 'spectrum'],
-    'MARKETS':     ['nifty', 'sensex', 'equity', 'market outlook', 'index', 'valuation', 'fii', 'dii'],
-    'ECONOMY':     ['gdp', 'fiscal', 'budget', 'trade deficit', 'current account', 'forex', 'rbi policy'],
-    'GEOPOLITICS': ['geopolit', 'war', 'conflict', 'iran', 'israel', 'ukraine', 'russia', 'strategic'],
-}
-
-def sector_detect(text, filename):
-    check_text = (filename + " " + text[:2000]).lower()
-    for sector, keywords in SECTOR_KEYWORDS.items():
-        for kw in keywords:
-            if kw in check_text:
-                return sector
-    return 'RESEARCH'
-
-
-# ============================================================
-#  SECTION 1D: PDF TABLE EXTRACTOR
-#  Uses pdfplumber to find tables inside PDFs
-# ============================================================
-
-def tables_nikalo(filepath, max_tables=2, min_rows=2, min_cols=2):
-    extracted_tables = []
+def gemini(prompt):
     try:
-        with pdfplumber.open(filepath) as pdf:
-            for page in pdf.pages:
-                tables = page.extract_tables()
-                for table in tables:
-                    if not table:
-                        continue
-                    clean_table = []
-                    for row in table:
-                        clean_row = [str(cell).strip() if cell else "" for cell in row]
-                        if any(cell for cell in clean_row):
-                            clean_table.append(clean_row)
-                    if len(clean_table) < min_rows:
-                        continue
-                    if len(clean_table[0]) < min_cols:
-                        continue
-                    extracted_tables.append(clean_table)
-                    if len(extracted_tables) >= max_tables:
-                        return extracted_tables
-    except Exception as e:
-        print(f"  Table extraction error: {e}")
-    return extracted_tables
-
-
-# ============================================================
-#  SECTION 2: FILTER WORDS LIST
-#  Lines containing these words are removed from key points
-# ============================================================
-
-FILTER_WORDS = [
-    'disclaimer', 'views expressed', 'do not necessarily', 'reflect the views',
-    'personal views', 'author', 'nothing contained', 'shall constitute',
-    'solicitation', 'offer to sell', 'offer to purchase',
-    'invitation or solicitation', 'any entity', 'accuracy', 'completeness',
-    'reliability', 'representation', 'also available', 'bloomberg', 'reuters',
-    'factset', 'research is also', 'nuvama research', 'systematix', 'edelweiss',
-    'motilal oswal', 'kotak securities', 'hdfc securities', 'sebi registered',
-    'unsubscribe', 'click here', 'kindly note', 'tel:', 'mob:', 'fax:',
-    'all rights reserved', 'copyright', 'terms of use', 'privacy policy',
-    # Promotional / non-insight content
-    'we hosted', 'webinar', 'founder', 'ceo', 'chief ', 'years of experience',
-    'ex-rystad', 'ex-shell', 'xanalyst', 'our analyst', 'we believe investors',
-    'we recommend', 'investors are advised',
-    # Stock tips / broker ratings
-    'buy rating', 'sell rating', 'hold rating', 'strong buy', 'target price',
-    'price target', 'accumulate', 'sector rating', 'overweight', 'underweight',
-    'outperform', 'underperform', 'coverage universe',
-]
-
-
-# ============================================================
-#  SECTION 3: GEMINI AI SUMMARIZATION
-#  Sends PDF text to Gemini API and returns a clean summary
-# ============================================================
-
-def gemini_summary(text, filename):
-    try:
-        client = genai.Client(api_key=GEMINI_API_KEY)
-        prompt = f"""You are a financial journalist writing for an economics and markets intelligence platform — NOT a broker or stock advisor.
-
-Read this research report and write a crisp 2-3 sentence insight about what is happening in this sector or economy.
-
-STRICT RULES:
-- Focus on the MACRO trend, sector development, or economic event — NOT stock picks
-- Do NOT mention any stock ratings (BUY/SELL/HOLD/Overweight etc.)
-- Do NOT recommend any stocks or say which company to invest in
-- DO mention specific data points, % changes, macro drivers if available
-- End with WHY this matters for the Indian economy or markets broadly
-- Write like an economist or journalist, not a broker
-- Maximum 60 words
-
-Report filename: {filename}
-Report text:
-{text[:4000]}
-
-Insight:"""
+        client   = genai.Client(api_key=GEMINI_API_KEY)
         response = client.models.generate_content(
-            model="gemini-2.0-flash",
-            contents=prompt
+            model    = "gemini-2.0-flash",
+            contents = prompt
         )
         return response.text.strip()
     except Exception as e:
-        print(f"  Gemini API error: {e}")
+        print(f"  [Gemini error] {e}")
         return None
 
 
-# ============================================================
-#  SECTION 3B: KEY POINTS EXTRACTOR (fallback if Gemini fails)
-# ============================================================
+# ================================================================
+#  STEP 3: PDF SE TEXT NIKALO
+#
+#  PyMuPDF library se PDF ka poora text ek string mein nikalte hain
+#  Yeh text baad mein Gemini ko bheja jaata hai
+# ================================================================
 
-def key_points_nikalo(text, kitne_points=4):
-    min_line_length = 60
-    max_line_length = 200
-
-    clean_lines = []
-    for line in text.split('\n'):
-        line = line.strip()
-        if '@' in line:
-            continue
-        if len(line) < min_line_length or len(line) > max_line_length:
-            continue
-        if any(word in line.lower() for word in FILTER_WORDS):
-            continue
-        alpha_count = sum(1 for c in line if c.isalpha())
-        if alpha_count < 30:
-            continue
-        clean_lines.append(line)
-
-    # Return top lines as bullet points (simple extraction)
-    seen = set()
-    unique_lines = []
-    for line in clean_lines:
-        key = line[:40].lower()
-        if key not in seen:
-            seen.add(key)
-            unique_lines.append(line)
-        if len(unique_lines) >= kitne_points:
-            break
-
-    return unique_lines if unique_lines else ["Report processed. Open PDF for full details."]
+def pdf_text(filepath):
+    doc  = fitz.open(filepath)
+    text = ""
+    for page in doc:
+        text += page.get_text()
+    doc.close()
+    return text
 
 
-# ============================================================
-#  SECTION 4: LIVE TICKER DATA FROM YFINANCE
-#  Fetches real-time market data when you run generate.py
-# ============================================================
+# ================================================================
+#  STEP 4: AI TITLE GENERATOR
+#
+#  Gemini PDF ka text padh ke ek clean headline banata hai
+#  Jaise: "India WPI Inflation Hits 11-Month High in February"
+#
+#  Kya NAHI aana chahiye title mein:
+#  - Broker ka naam (Nuvama, Systematix etc.)
+#  - BUY/SELL/HOLD ratings
+#  - Analyst ka naam
+#
+#  Agar Gemini fail kare toh filename se title banta hai (fallback)
+# ================================================================
 
-def fetch_ticker_data():
+def ai_title(text, filename):
+    result = gemini(f"""You are a financial news editor. Write a single crisp headline for this research report.
+
+Rules:
+- Maximum 10 words
+- Focus on the KEY economic event, sector trend, or macro development
+- Do NOT mention: broker name, BUY/SELL/HOLD ratings, stock tips, analyst names
+- Style: Economic Times or Bloomberg headline
+- No quotes, no full stop at end
+
+Filename: {filename}
+Report (first 1500 chars): {text[:1500]}
+
+Headline (just the text, nothing else):""")
+
+    # Agar Gemini ne sahi jawab diya toh use karo
+    if result and len(result) > 10:
+        return result[:130]
+
+    # Fallback: filename ko clean karke title banao
+    name = filename.replace('.pdf','').replace('_',' ').replace('+',' ').replace('-',' ')
+    return name.title()[:130]
+
+
+# ================================================================
+#  STEP 5: SECTOR AUTO-DETECT
+#
+#  PDF ke filename aur content se automatically sector detect hota hai
+#  Jaise: "oil", "gas", "crude" → ENERGY sector
+#         "bank", "rbi", "credit" → BANKING sector
+#
+#  Agar koi match nahi mila toh "RESEARCH" return hoga
+# ================================================================
+
+SECTOR_MAP = {
+    'INFLATION':   ['wpi', 'cpi', 'inflation', 'price index', 'iip'],
+    'ENERGY':      ['oil', 'gas', 'crude', 'opec', 'ntpc', 'power', 'energy', 'petroleum', 'ongc', 'bpcl', 'strait'],
+    'BANKING':     ['bank', 'nbfc', 'rbi', 'credit', 'npa', 'deposit', 'loan', 'repo rate'],
+    'TECHNOLOGY':  ['it services', 'software', 'saas', 'cloud', 'infosys', 'wipro', 'tcs', 'hcl tech'],
+    'AUTO':        ['automobile', 'auto sector', 'vehicle sales', 'ev ', 'maruti', 'tata motors'],
+    'PHARMA':      ['pharma', 'drug', 'fda', 'clinical', 'healthcare', 'biotech'],
+    'FMCG':        ['fmcg', 'consumer goods', 'food inflation', 'rural demand'],
+    'REAL ESTATE': ['real estate', 'realty', 'housing', 'property', 'cement'],
+    'METALS':      ['steel', 'metal', 'aluminium', 'copper', 'iron ore', 'zinc'],
+    'TELECOM':     ['telecom', 'arpu', '5g', 'jio', 'airtel', 'spectrum'],
+    'MARKETS':     ['nifty', 'sensex', 'equity market', 'market outlook', 'fii', 'dii'],
+    'ECONOMY':     ['gdp', 'fiscal', 'budget', 'trade deficit', 'current account', 'rbi policy'],
+    'GEOPOLITICS': ['geopolit', 'war', 'conflict', 'iran', 'israel', 'ukraine', 'russia'],
+}
+
+def detect_sector(text, filename):
+    # Filename + report ke pehle 2000 characters mein keywords dhundho
+    check = (filename + " " + text[:2000]).lower()
+    for sector, keywords in SECTOR_MAP.items():
+        for kw in keywords:
+            if kw in check:
+                return sector
+    return 'RESEARCH'  # Koi match nahi mila
+
+
+# ================================================================
+#  STEP 6: AI BULLET POINTS GENERATOR
+#
+#  Gemini 4 crisp economic facts likhta hai
+#
+#  BILKUL NAHI AANA CHAHIYE:
+#  - BUY / SELL / HOLD / Accumulate / Overweight
+#  - Target Price / CMP / Price Target
+#  - Broker names / Analyst promotion
+#  - Webinar / CEO / "30 years experience" wali lines
+#
+#  Double protection hai:
+#  1. Gemini ko prompt mein strictly mana hai
+#  2. Post-processing filter — agar Gemini bhool ke bhi likh de toh remove
+# ================================================================
+
+# Yeh words bullet points mein aane par line automatically remove ho jaayegi
+STOCK_TIP_WORDS = [
+    'buy', 'sell', 'hold', 'accumulate', 'overweight', 'underweight',
+    'outperform', 'underperform', 'target price', 'price target', 'cmp',
+    'strong buy', 'strong sell', 'reco', 'initiating coverage',
+    'we recommend', 'our top pick', 'preferred pick',
+]
+
+def ai_bullets(text, sector):
+    result = gemini(f"""Write exactly 4 bullet points summarizing key ECONOMIC or SECTOR facts from this report.
+
+ABSOLUTE RULES — no exceptions:
+- ZERO stock recommendations (no BUY, SELL, HOLD, Accumulate, Overweight, Target Price, CMP)
+- ZERO broker/analyst names or promotional content
+- Each bullet = one economic fact, data point, or sector trend with numbers if available
+- Max 18 words per bullet
+- Output: just 4 plain lines, no bullet symbols, no numbering
+
+Sector: {sector}
+Report text: {text[:5000]}
+
+4 facts (plain lines only):""")
+
+    if result:
+        lines = [l.strip().lstrip('-*+.1234567890) ') for l in result.split('\n') if l.strip()]
+        lines = [l for l in lines if len(l) > 15]
+        # Post-processing filter — stock tip wali lines hatao
+        lines = [l for l in lines if not any(w in l.lower() for w in STOCK_TIP_WORDS)]
+        return lines[:4] if lines else ["Key economic data available in the original report."]
+    return ["Key economic data available in the original report."]
+
+
+# ================================================================
+#  STEP 7: AI SUMMARY GENERATOR
+#
+#  Card ke neeche ek chhoti italic summary dikhti hai
+#  Yeh batati hai ki report kya kehna chahti hai — plain language mein
+#  Maximum 400 characters, 2 sentences
+#
+#  Koi stock tips nahi, koi ratings nahi — sirf economic story
+# ================================================================
+
+def ai_summary(text, sector, filename):
+    result = gemini(f"""Write a short 2-sentence plain-language summary of what this research report is about.
+
+Rules:
+- Explain the economic/sector story in simple terms
+- No stock tips, no ratings (BUY/SELL/HOLD), no broker language
+- End with why this matters for India's economy or this sector
+- Maximum 55 words total
+
+Sector: {sector}
+Filename: {filename}
+Report: {text[:3000]}
+
+Summary:""")
+    return result[:400] if result else None
+
+
+# ================================================================
+#  STEP 8: TABLE EXTRACTION + CLEANING
+#
+#  pdfplumber library se PDF mein se tables nikalte hain
+#
+#  Kya filter hota hai:
+#  1. Pure recommendation tables — jisme sirf Company/Rating/Target ho → SKIP (show hi nahi hogi)
+#  2. BUY/SELL/HOLD columns → REMOVE (column hi hata dete hain)
+#
+#  Maximum 2 tables per PDF dikhayenge
+# ================================================================
+
+# Yeh words column mein zyada hone pe woh column remove ho jaayega
+RATING_WORDS   = {'buy','sell','hold','accumulate','overweight','underweight',
+                  'outperform','underperform','neutral','reduce','add'}
+
+# Yeh column headers hote hain jisme rating data hota hai
+RATING_HEADERS = {'reco','rating','recommendation','call','stance','view','recom','tp'}
+
+def is_recommendation_table(table):
+    """Check karo ki poori table sirf stock recommendations ki hai — agar haan toh skip karo"""
+    if not table or not table[0]:
+        return False
+    headers   = [str(c).lower().strip() for c in table[0] if c]
+    rec_count = sum(1 for h in headers if h in RATING_HEADERS or 'target' in h)
+    return rec_count >= 2  # 2 ya zyada rating columns hain toh pure rec table hai
+
+def remove_rating_columns(table):
+    """Table se BUY/SELL/HOLD wale columns hata do"""
+    if not table or not table[0]:
+        return table
+
+    remove = set()
+
+    # Header se pehchano
+    for ci, cell in enumerate(table[0]):
+        if str(cell).lower().strip() in RATING_HEADERS:
+            remove.add(ci)
+
+    # Column ke values se pehchano — agar 40% se zyada values rating words hain
+    if len(table) > 2:
+        for ci in range(len(table[0])):
+            vals = [str(table[ri][ci]).lower().strip()
+                    for ri in range(1, min(len(table), 8))
+                    if ci < len(table[ri])]
+            if vals and sum(1 for v in vals if v in RATING_WORDS) / len(vals) > 0.4:
+                remove.add(ci)
+
+    if not remove:
+        return table  # Kuch remove nahi karna
+
+    # Remove kiye bina wali columns wapas banao
+    return [[c for ci, c in enumerate(row) if ci not in remove] for row in table]
+
+def tables_nikalo(filepath):
+    """PDF se tables nikalo, clean karo, aur return karo"""
+    extracted = []
+    try:
+        with pdfplumber.open(filepath) as pdf:
+            for page in pdf.pages:
+                for table in (page.extract_tables() or []):
+                    if not table:
+                        continue
+
+                    # Empty rows hatao
+                    clean = [[str(c).strip() if c else "" for c in row]
+                             for row in table if any(c for c in row)]
+
+                    # Bahut choti tables skip karo
+                    if len(clean) < 2 or len(clean[0]) < 2:
+                        continue
+
+                    # Pure recommendation table → skip
+                    if is_recommendation_table(clean):
+                        print(f"  Skipped recommendation table")
+                        continue
+
+                    # Rating columns remove karo
+                    clean = remove_rating_columns(clean)
+                    extracted.append(clean)
+
+                    # Maximum 2 tables per PDF
+                    if len(extracted) >= 2:
+                        return extracted
+
+    except Exception as e:
+        print(f"  [Table error] {e}")
+
+    return extracted
+
+def ai_table_description(table, sector):
+    """Gemini table ke liye ek line description likhta hai"""
+    preview = "\n".join(" | ".join(str(c) for c in row) for row in table[:4])
+    result  = gemini(f"""Look at this table from a financial research report.
+Write ONE sentence (max 12 words) describing what DATA/METRICS this table shows.
+Focus on the numbers shown, not any recommendations.
+
+Sector: {sector}
+Table preview:
+{preview}
+
+One sentence description:""")
+    return result if result else f"Key metrics — {sector} sector"
+
+
+# ================================================================
+#  STEP 9: LIVE MARKET DATA (TICKER BAR)
+#
+#  yfinance library se live data fetch karta hai
+#  Yeh data website ke upar wali scrolling bar mein dikhta hai
+#
+#  Data fetch hota hai: Nifty, Sensex, Bank Nifty, S&P 500,
+#  Nasdaq, Dow Jones, Gold, Crude Oil, USD/INR
+#
+#  Agar data nahi mila toh "N/A" dikhata hai
+# ================================================================
+
+def fetch_ticker():
     symbols = {
         "NIFTY 50":   "^NSEI",
         "SENSEX":     "^BSESN",
@@ -253,80 +370,69 @@ def fetch_ticker_data():
         "CRUDE OIL":  "CL=F",
         "USD/INR":    "INR=X",
     }
-
-    ticker_items = []
+    items = []
     print("Fetching live market data...")
 
-    for name, symbol in symbols.items():
+    for name, sym in symbols.items():
         try:
-            ticker = yf.Ticker(symbol)
-            hist = ticker.history(period="2d")
-            if hist.empty or len(hist) < 1:
-                raise ValueError("No data")
+            hist  = yf.Ticker(sym).history(period="2d")
+            if hist.empty:
+                raise ValueError("no data")
 
-            current = hist['Close'].iloc[-1]
-            prev    = hist['Close'].iloc[-2] if len(hist) >= 2 else current
-            change  = ((current - prev) / prev) * 100
-            arrow   = "▲" if change >= 0 else "▼"
-            sign    = "+" if change >= 0 else ""
+            cur   = hist['Close'].iloc[-1]
+            prev  = hist['Close'].iloc[-2] if len(hist) >= 2 else cur
+            chg   = ((cur - prev) / prev) * 100
+            arrow = "▲" if chg >= 0 else "▼"
+            sign  = "+" if chg >= 0 else ""
 
-            # Format values
+            # Format — Gold/Crude mein $ sign, INR mein ₹
             if name in ["GOLD", "CRUDE OIL"]:
-                val_str = f"${current:,.2f}"
+                val = f"${cur:,.2f}"
             elif name == "USD/INR":
-                val_str = f"₹{current:.2f}"
-            elif name in ["NIFTY 50", "SENSEX", "BANK NIFTY"]:
-                val_str = f"{current:,.2f}"
+                val = f"₹{cur:.2f}"
             else:
-                val_str = f"{current:,.2f}"
+                val = f"{cur:,.2f}"
 
-            ticker_items.append(
-                f"{name} &nbsp; {val_str} &nbsp; {arrow} {sign}{change:.2f}%"
-            )
-            print(f"  {name}: {val_str} {arrow} {sign}{change:.2f}%")
+            items.append(f"{name} &nbsp; {val} &nbsp; {arrow} {sign}{chg:.2f}%")
+            print(f"  {name}: {val} {arrow} {sign}{chg:.2f}%")
 
         except Exception as e:
-            print(f"  Could not fetch {name} ({symbol}): {e}")
-            # Fallback hardcoded value
-            ticker_items.append(f"{name} &nbsp; -- &nbsp; N/A")
+            print(f"  Could not fetch {name}: {e}")
+            items.append(f"{name} &nbsp; -- &nbsp; N/A")
 
-    return ticker_items
-
-
-# ============================================================
-#  SECTION 5: WEBSITE TITLE
-# ============================================================
-
-WEBSITE_TITLE = "Quantis"
+    return items
 
 
-# ============================================================
-#  SECTION 6: WEBSITE DESIGN (CSS)
-#  - Ticker bar: WHITE background, black text
-#  - SAVED button: white background, black text
-#  - Header: black background, orange border
-#  - Title: bold white, date left, orange sector tag right
-# ============================================================
+# ================================================================
+#  STEP 10: WEBSITE CSS (DESIGN)
+#
+#  Yahan sirf colors aur fonts hain — content nahi
+#
+#  Current design:
+#  - Background: Black (#000000)
+#  - Accent: Orange (#ff6600)
+#  - Font: IBM Plex Mono
+#  - Ticker bar: White background, black text
+#  - SAVED button: Dark grey (aankhon ko bright nahi lagta)
+#  - Sector tag: Orange background, black text
+#  - AI Summary: Italic, grey, left border
+# ================================================================
 
 WEBSITE_CSS = """
     @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&display=swap');
 
-    * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
         font-family: 'IBM Plex Mono', monospace;
-        background: #000000;
-        color: #ffffff;
+        background: #000;
+        color: #fff;
         padding-bottom: 60px;
     }
 
-    /* ---- BLOOMBERG STYLE HEADER ---- */
+    /* ---- HEADER (QUANTIS logo + SAVED button) ---- */
     #site-header {
-        background: #000000;
+        background: #000;
         border-bottom: 2px solid #ff6600;
         padding: 14px 24px;
         display: flex;
@@ -336,20 +442,18 @@ WEBSITE_CSS = """
         top: 0;
         z-index: 100;
     }
-
     #site-logo {
         font-size: 1.6em;
         font-weight: 700;
-        color: #ffffff;
+        color: #fff;
         letter-spacing: 3px;
-        text-transform: uppercase;
     }
 
-    /* ---- SAVED BUTTON — DIM GREY THEME ---- */
+    /* SAVED button — dark grey, aankhon ko suit karta hai */
     #bookmark-toggle {
-        background: #2a2a2a;
-        border: 1px solid #444444;
-        color: #aaaaaa;
+        background: #1a1a1a;
+        border: 1px solid #444;
+        color: #888;
         font-family: 'IBM Plex Mono', monospace;
         font-size: 0.75em;
         font-weight: 700;
@@ -357,555 +461,419 @@ WEBSITE_CSS = """
         cursor: pointer;
         letter-spacing: 2px;
     }
+    #bookmark-toggle:hover { background: #2a2a2a; color: #fff; }
 
-    #bookmark-toggle:hover {
-        background: #333333;
-        color: #ffffff;
-    }
-
-    /* ---- TICKER BAR — WHITE THEME ---- */
+    /* ---- TICKER BAR (scrolling market data) ---- */
+    /* White background, black text — clean readable */
     #ticker-bar {
-        background: #ffffff;
-        color: #000000;
+        background: #fff;
+        color: #000;
         font-size: 0.75em;
         font-weight: 700;
         padding: 5px 0;
         overflow: hidden;
         white-space: nowrap;
-        border-bottom: 1px solid #dddddd;
+        border-bottom: 1px solid #ddd;
     }
-
     #ticker-content {
         display: inline-block;
+        /* 90 seconds mein ek loop — slow aur readable */
         animation: scroll-ticker 90s linear infinite;
         padding-left: 100%;
     }
-
-    #ticker-content span {
-        margin-right: 60px;
-        letter-spacing: 1px;
-        color: #000000;
-    }
-
+    #ticker-content span { margin-right: 60px; color: #000; }
     @keyframes scroll-ticker {
         0%   { transform: translateX(0); }
         100% { transform: translateX(-100%); }
     }
 
     /* ---- MAIN CONTENT AREA ---- */
-    #main-content {
-        max-width: 960px;
-        margin: 30px auto;
-        padding: 0 24px;
-    }
+    #main-content { max-width: 900px; margin: 30px auto; padding: 0 24px; }
 
     /* ---- REPORT CARD ---- */
-    .report-card {
-        background: #000000;
-        border: none;
-        border-bottom: 1px solid #222222;
-        padding: 24px 0;
-        margin: 0;
-    }
+    .report-card { border-bottom: 1px solid #1a1a1a; padding: 28px 0; }
 
-    /* ---- REPORT TITLE ---- */
+    /* ---- TITLE ---- */
     .report-card h2 {
-        font-size: 1.15em;
-        color: #ffffff;
-        text-transform: none;
-        letter-spacing: 0.5px;
-        margin-bottom: 8px;
+        font-size: 1.1em;
+        color: #fff;
         font-weight: 700;
-        line-height: 1.4;
+        line-height: 1.5;
+        margin-bottom: 8px;
     }
 
-    /* ---- TITLE META ROW: date left, sector tag right ---- */
+    /* ---- DATE (left) + SECTOR TAG (right) ---- */
     .title-meta {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 14px;
+        margin-bottom: 16px;
     }
-
-    .date {
-        font-size: 0.72em;
-        color: #888888;
-        letter-spacing: 1px;
-    }
-
+    .date { font-size: 0.68em; color: #555; letter-spacing: 1px; }
     .sector-tag {
-        font-size: 0.68em;
+        font-size: 0.65em;
         font-weight: 700;
-        color: #000000;
+        color: #000;
         background: #ff6600;
         padding: 3px 10px;
         letter-spacing: 2px;
-        text-transform: uppercase;
-    }
-
-    /* ---- AI SUMMARY BOX ---- */
-    .ai-summary {
-        background: #0a0a0a;
-        border-left: 3px solid #ff6600;
-        padding: 10px 14px;
-        margin-bottom: 14px;
-        font-size: 0.83em;
-        color: #cccccc;
-        line-height: 1.7;
-        font-style: italic;
     }
 
     /* ---- BULLET POINTS ---- */
-    ul {
-        line-height: 1.8;
-        padding-left: 18px;
-    }
-
-    li {
-        margin-bottom: 8px;
-        color: #dddddd;
-        font-size: 0.88em;
+    .bullets { padding-left: 16px; margin-bottom: 16px; }
+    .bullets li {
+        font-size: 0.84em;
+        color: #bbb;
+        line-height: 1.7;
         padding-bottom: 6px;
-        border-bottom: 1px solid #111111;
+        margin-bottom: 4px;
+        border-bottom: 1px solid #0f0f0f;
     }
+    .bullets li::marker { color: #ff6600; }
 
-    li::marker {
+    /* ---- TABLE ---- */
+    .table-wrap { margin: 14px 0; overflow-x: auto; border: 1px solid #111; }
+    .table-label {
+        font-size: 0.63em;
+        color: #555;
+        font-style: italic;
+        padding: 6px 10px 5px;
+        border-bottom: 1px solid #111;
+        letter-spacing: 0.3px;
+    }
+    .pdf-table { width: 100%; border-collapse: collapse; font-size: 0.67em; }
+    /* Header row — orange text */
+    .pdf-table tr:first-child td {
+        background: #0d0600;
         color: #ff6600;
+        font-weight: 700;
+        padding: 6px 10px;
+        border-bottom: 1px solid #ff6600;
+        white-space: nowrap;
     }
-
-    /* ---- TABLE STYLES — COMPACT ---- */
-    .pdf-table-wrap {
-        margin: 12px 0;
-        overflow-x: auto;
+    /* Data rows */
+    .pdf-table tr:not(:first-child) td {
+        padding: 5px 10px;
+        color: #999;
+        border-bottom: 1px solid #0a0a0a;
+        white-space: nowrap;
     }
+    /* Alternate rows thoda alag background */
+    .pdf-table tr:nth-child(even) td { background: #060606; }
 
-    .table-description {
-        font-size: 0.68em;
-        color: #666666;
-        margin-bottom: 5px;
-        letter-spacing: 0.5px;
+    /* ---- AI SUMMARY (card ke neeche italic text) ---- */
+    .ai-summary {
+        margin-top: 14px;
+        padding: 10px 14px;
+        border-left: 2px solid #222;
+        font-size: 0.76em;
+        color: #555;
+        line-height: 1.8;
         font-style: italic;
     }
 
-    .pdf-table {
-        width: auto;
-        max-width: 100%;
-        border-collapse: collapse;
-        font-size: 0.70em;
-        color: #bbbbbb;
-    }
+    /* ---- CARD FOOTER (bookmark + read more) ---- */
+    .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; }
 
-    .pdf-table tr:first-child td {
-        background: #1a0a00;
-        color: #ff6600;
-        font-weight: 700;
-        padding: 5px 8px;
-        border-bottom: 1px solid #ff6600;
-        text-align: left;
-        letter-spacing: 0.3px;
-        white-space: nowrap;
-    }
-
-    .pdf-table tr:not(:first-child) td {
-        padding: 4px 8px;
-        border-bottom: 1px solid #111111;
-        text-align: left;
-        vertical-align: top;
-        white-space: nowrap;
-    }
-
-    .pdf-table tr:nth-child(even) td {
-        background: #0a0a0a;
-    }
-
-    /* ---- CARD FOOTER ---- */
-    .card-footer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-top: 14px;
-        padding-top: 8px;
-    }
-
-    /* ---- BOOKMARK PANEL ---- */
+    /* ---- SAVED REPORTS PANEL (right side popup) ---- */
     #bookmark-panel {
         position: fixed;
-        top: 90px;
-        right: 20px;
-        width: 280px;
-        max-height: 420px;
-        background: #0d0d0d;
-        border: 1px solid #333333;
-        padding: 16px;
+        top: 90px; right: 20px;
+        width: 265px; max-height: 400px;
+        background: #0a0a0a;
+        border: 1px solid #1a1a1a;
+        padding: 14px;
         overflow-y: auto;
         display: none;
         z-index: 999;
-        border-radius: 4px;
+        border-radius: 2px;
     }
-
     #bookmark-panel h3 {
         color: #ff6600;
         letter-spacing: 3px;
-        font-size: 0.75em;
-        border-bottom: 1px solid #333333;
+        font-size: 0.70em;
+        border-bottom: 1px solid #1a1a1a;
         padding-bottom: 8px;
         margin-bottom: 10px;
     }
-
     #bookmark-list li {
-        font-size: 0.78em;
-        line-height: 1.5;
-        color: #cccccc;
-        border-bottom: 1px solid #1a1a1a;
-        padding: 8px 0;
+        font-size: 0.74em;
+        color: #888;
+        padding: 7px 0;
         cursor: pointer;
-        letter-spacing: 0.3px;
         border: none;
+        border-bottom: 1px solid #0f0f0f;
         margin-bottom: 0;
     }
-
-    #bookmark-list li:hover {
-        color: #ffffff;
-    }
+    #bookmark-list li:hover { color: #fff; }
 """
 
 
-# ============================================================
-#  SECTION 7: JAVASCRIPT — BOOKMARKS + READ MORE
-# ============================================================
+# ================================================================
+#  STEP 11: JAVASCRIPT (INTERACTIVE FEATURES)
+#
+#  Yeh sab features handle karta hai:
+#  - Bookmark (SAVED) button — report save/unsave
+#  - SAVED panel — saved reports ki list
+#  - READ MORE / READ LESS — extra bullet points dikhana
+#
+#  Kuch mat badlo yahan — yeh sab automatically kaam karta hai
+# ================================================================
 
 BOOKMARK_JS = """
+    // Report bookmark karo / hatao
     function toggleBookmark(btn, text) {
-        let bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '[]');
-        const index = bookmarks.indexOf(text);
-        if (index === -1) {
-            bookmarks.push(text);
-            btn.style.color = '#ff6600';
-            btn.title = 'Saved!';
-        } else {
-            bookmarks.splice(index, 1);
-            btn.style.color = '#333';
-            btn.title = 'Bookmark this report';
-        }
-        localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+        let bm = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+        const i = bm.indexOf(text);
+        if (i === -1) { bm.push(text); btn.style.color='#ff6600'; }
+        else { bm.splice(i,1); btn.style.color='#333'; }
+        localStorage.setItem('bookmarks', JSON.stringify(bm));
         showBookmarks();
     }
 
+    // SAVED panel mein list update karo
     function showBookmarks() {
-        let bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '[]');
-        const list = document.getElementById('bookmark-list');
-        const btn = document.getElementById('bookmark-toggle');
-        list.innerHTML = bookmarks.length === 0
-            ? '<li style="color:#555; cursor:default; padding:8px 0;">No saved reports</li>'
-            : bookmarks.map((b, i) => `
-                <li onclick="scrollToReport('${b}')" title="Go to report">
-                    ${b}
-                    <span onclick="event.stopPropagation(); removeBookmark(${i})"
-                          style="cursor:pointer; color:#555; float:right; margin-left:8px;">[X]</span>
-                </li>`).join('');
-        btn.innerHTML = bookmarks.length > 0 ? 'SAVED [' + bookmarks.length + ']' : 'SAVED';
+        let bm = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+        document.getElementById('bookmark-list').innerHTML = bm.length === 0
+            ? '<li style="color:#333;cursor:default;">No saved reports</li>'
+            : bm.map((b,i)=>`<li onclick="scrollToReport('${b}')">${b}
+                <span onclick="event.stopPropagation();removeBookmark(${i})"
+                style="float:right;color:#333;">[X]</span></li>`).join('');
+        document.getElementById('bookmark-toggle').innerHTML =
+            bm.length > 0 ? 'SAVED ['+bm.length+']' : 'SAVED';
     }
 
-    function scrollToReport(title) {
-        const cards = document.querySelectorAll('.report-card');
-        cards.forEach(card => {
-            const h2 = card.querySelector('h2');
-            if (h2 && h2.innerText.toLowerCase().includes(title.toLowerCase().slice(0, 20))) {
-                card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Report pe scroll karo
+    function scrollToReport(t) {
+        document.querySelectorAll('.report-card').forEach(card=>{
+            const h = card.querySelector('h2');
+            if(h && h.innerText.toLowerCase().includes(t.toLowerCase().slice(0,20))) {
+                card.scrollIntoView({behavior:'smooth',block:'start'});
                 togglePanel();
             }
         });
     }
 
+    // SAVED panel open/close karo
     function togglePanel() {
-        const panel = document.getElementById('bookmark-panel');
-        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        const p = document.getElementById('bookmark-panel');
+        p.style.display = p.style.display==='none' ? 'block' : 'none';
     }
 
-    function removeBookmark(index) {
-        let bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '[]');
-        bookmarks.splice(index, 1);
-        localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
-        showBookmarks();
-        markSavedButtons();
+    // Bookmark hatao
+    function removeBookmark(i) {
+        let bm = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+        bm.splice(i,1);
+        localStorage.setItem('bookmarks', JSON.stringify(bm));
+        showBookmarks(); markSaved();
     }
 
-    function markSavedButtons() {
-        let bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '[]');
-        document.querySelectorAll('.bookmark-btn').forEach(btn => {
-            const text = btn.getAttribute('data-text');
-            btn.style.color = bookmarks.includes(text) ? '#ff6600' : '#333';
+    // Saved buttons ka color set karo (orange = saved)
+    function markSaved() {
+        let bm = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+        document.querySelectorAll('.bookmark-btn').forEach(btn=>{
+            btn.style.color = bm.includes(btn.getAttribute('data-text')) ? '#ff6600' : '#333';
         });
     }
 
+    // READ MORE / READ LESS toggle
     function toggleMore(i, btn) {
-        const section = document.getElementById('more-' + i);
-        if (section.style.display === 'none') {
-            section.style.display = 'block';
-            btn.innerHTML = 'READ LESS &#9650;';
+        const s = document.getElementById('more-'+i);
+        if(s.style.display==='none') {
+            s.style.display='block';
+            btn.innerHTML='READ LESS &#9650;';
         } else {
-            section.style.display = 'none';
-            btn.innerHTML = 'READ MORE &#9660;';
+            s.style.display='none';
+            btn.innerHTML='READ MORE &#9660;';
         }
     }
 
-    window.onload = function() {
-        showBookmarks();
-        markSavedButtons();
-    };
+    // Page load hone pe saved buttons mark karo
+    window.onload = function() { showBookmarks(); markSaved(); };
 """
 
 
-# ============================================================
-#  SECTION 8: HTML TABLE BUILDER
-# ============================================================
-
-BUY_SELL_WORDS = ['buy', 'sell', 'hold', 'accumulate', 'overweight', 'underweight', 'outperform', 'underperform', 'neutral', 'reduce']
-
-def table_description_generate(table, sector):
-    """Generate a one-line description of what the table shows"""
-    headers = [str(cell).lower() for cell in table[0] if cell]
-    header_str = " ".join(headers)
-
-    if any(w in header_str for w in ['cmp', 'reco', 'tp', 'target', 'rating', 'mkt cap']):
-        return f"Valuation & coverage data for key {sector} sector companies"
-    elif any(w in header_str for w in ['fy', 'revenue', 'ebitda', 'pat', 'eps', 'profit']):
-        return f"Financial estimates for {sector} sector companies"
-    elif any(w in header_str for w in ['inflation', 'wpi', 'cpi', 'index', 'iip']):
-        return f"Key economic indicators — {sector} data"
-    elif any(w in header_str for w in ['country', 'global', 'world', 'region']):
-        return f"Global comparison data relevant to {sector}"
-    else:
-        return f"Data extracted from report — {sector} sector"
-
-def filter_buy_sell_rows(table):
-    """Remove rows that are purely stock recommendation data"""
-    filtered = []
-    for i, row in enumerate(table):
-        if i == 0:
-            filtered.append(row)
-            continue
-        row_text = " ".join(str(cell).lower() for cell in row if cell)
-        # Skip rows where most content is buy/sell/hold recommendations
-        buy_sell_count = sum(1 for w in BUY_SELL_WORDS if w in row_text.split())
-        if buy_sell_count >= 2:
-            continue
-        filtered.append(row)
-    return filtered if len(filtered) > 1 else table
-
-def table_to_html(table, sector='RESEARCH'):
-    # Filter buy/sell rows
-    table = filter_buy_sell_rows(table)
-    description = table_description_generate(table, sector)
-
-    rows_html = ""
-    for row in table:
-        cells = "".join(f"<td>{cell}</td>" for cell in row)
-        rows_html += f"<tr>{cells}</tr>\n"
-    return f"""
-    <div class="pdf-table-wrap">
-        <div class="table-description">{description}</div>
-        <table class="pdf-table">
-            {rows_html}
-        </table>
-    </div>"""
-
-
-# ============================================================
-#  SECTION 9: HTML PAGE BUILDER
-#  Assembles everything into the final website
+# ================================================================
+#  STEP 12: TABLE HTML BUILDER
 #
-#  CARD LAYOUT:
-#  [Report Title — bold white]
-#  [Published: date left]  [SECTOR TAG right — orange]
-#  [AI Summary box — italic, left orange border]
-#  - Bullet point 1 (always visible)
-#  - Bullet point 2 (always visible)
-#  [Tables from PDF]
-#  [Hidden points on READ MORE]
-#  [Bookmark icon left]  [READ MORE right]
-# ============================================================
+#  Table data ko HTML mein convert karta hai
+#  Upar ek italic description hoti hai (Gemini se)
+#  Phir table dikhti hai
+# ================================================================
 
-def website_banao(reports_data, ticker_items):
-    aaj_ki_tarikh = datetime.today().strftime('%d %B %Y')
-    ticker_html = "".join(f'<span>{item}</span>' for item in ticker_items)
+def build_table_html(table, sector):
+    label = ai_table_description(table, sector)
+    rows  = "".join(
+        "<tr>" + "".join(f"<td>{c}</td>" for c in row) + "</tr>"
+        for row in table
+    )
+    return f'<div class="table-wrap"><div class="table-label">{label}</div><table class="pdf-table">{rows}</table></div>'
 
-    all_cards = ""
 
-    for i, report in enumerate(reports_data):
-        visible_points = report['points'][:2]
-        hidden_points = report['points'][2:]
+# ================================================================
+#  STEP 13: WEBSITE HTML BUILDER
+#
+#  Har report ka card banata hai aur poori website assemble karta hai
+#
+#  Card layout:
+#  ┌─────────────────────────────────────────┐
+#  │ TITLE (Gemini ne likha)                  │
+#  │ Date: 19 March 2026        [ENERGY]      │
+#  │ • Bullet point 1                         │
+#  │ • Bullet point 2                         │
+#  │ [Table — compact, clean]                 │
+#  │ [READ MORE ▼]  (2 aur bullets hain)      │
+#  │ Italic summary — report kya bata rahi hai│
+#  │ [🔖]                      [READ MORE ▼] │
+#  └─────────────────────────────────────────┘
+# ================================================================
 
-        visible_html = "".join(f"            <li>{p}</li>\n" for p in visible_points)
-        hidden_html = "".join(f"            <li>{p}</li>\n" for p in hidden_points)
+def build_website(reports, ticker_items):
+    today       = datetime.today().strftime('%d %B %Y')
+    ticker_html = "".join(f'<span>{t}</span>' for t in ticker_items)
+    cards       = ""
 
-        # Tables HTML
-        tables_html = ""
-        if report.get('tables'):
-            for table in report['tables']:
-                tables_html += table_to_html(table, report.get('sector', 'RESEARCH'))
+    for i, r in enumerate(reports):
+        title      = r.get('title', 'Untitled Report')
+        sector     = r.get('sector', 'RESEARCH')
+        bullets    = r.get('points', [])
+        summary    = r.get('summary', '')
+        tables     = r.get('tables', [])
+        safe_title = title.replace("'","").replace('"','')
 
-        # Hidden section
-        hidden_section = ""
-        if hidden_points:
-            hidden_section = f"""
-        <ul id="more-{i}" style="display:none; padding-left:18px; margin-top:0;">
-{hidden_html}        </ul>"""
+        # Pehle 2 bullets always dikhte hain
+        vis_html = "".join(f"<li>{p}</li>" for p in bullets[:2])
+        # Baaki bullets READ MORE ke peeche chhupe hain
+        hid_html = "".join(f"<li>{p}</li>" for p in bullets[2:])
 
-        # AI Summary box
-        summary_html = ""
-        if report.get('summary'):
-            summary_html = f'<div class="ai-summary">{report["summary"]}</div>'
+        hidden_sec   = f'<ul class="bullets" id="more-{i}" style="display:none;">{hid_html}</ul>' if bullets[2:] else ""
+        tables_html  = "".join(build_table_html(t, sector) for t in tables)
+        summary_html = f'<div class="ai-summary">{summary}</div>' if summary else ""
+        read_more    = f'<button onclick="toggleMore({i},this)" style="background:none;border:none;cursor:pointer;color:#555;font-family:inherit;font-size:0.74em;letter-spacing:2px;">READ MORE &#9660;</button>' if bullets[2:] else ""
 
-        safe_title = report['title'].replace("'", "").replace('"', '')
-        sector = report.get('sector', 'RESEARCH')
-
-        all_cards += f"""
+        cards += f"""
     <div class="report-card">
-        <h2>{report['title']}</h2>
+        <h2>{title}</h2>
         <div class="title-meta">
-            <span class="date">Published: {aaj_ki_tarikh}</span>
+            <span class="date">{today}</span>
             <span class="sector-tag">{sector}</span>
         </div>
-
-        {summary_html}
-
-        <ul>
-{visible_html}        </ul>
-
+        <ul class="bullets">{vis_html}</ul>
         {tables_html}
-
-        {hidden_section}
-
+        {hidden_sec}
+        {summary_html}
         <div class="card-footer">
-            <button class="bookmark-btn"
-                    data-text="{safe_title}"
-                    title="Bookmark this report"
-                    onclick="toggleBookmark(this, '{safe_title}')"
-                    style="background:none; border:none; cursor:pointer;
-                           color:#333; padding:0;">
+            <button class="bookmark-btn" data-text="{safe_title}"
+                onclick="toggleBookmark(this,'{safe_title}')"
+                style="background:none;border:none;cursor:pointer;color:#333;padding:0;">
                 <svg width="12" height="16" viewBox="0 0 14 18" fill="currentColor">
                     <path d="M0 0h14v18l-7-4.5L0 18z"/>
                 </svg>
             </button>
-
-            <button onclick="toggleMore({i}, this)"
-                    style="background:none; border:none; cursor:pointer;
-                           color:#666666; font-family:inherit; font-size:0.78em;
-                           letter-spacing:2px; text-transform:uppercase;">
-                READ MORE &#9660;
-            </button>
+            {read_more}
         </div>
     </div>"""
 
+    # Poori website HTML assemble karo
     html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{WEBSITE_TITLE}</title>
-    <style>
-{WEBSITE_CSS}
-    </style>
+    <style>{WEBSITE_CSS}</style>
 </head>
 <body>
-
     <div id="site-header">
         <div id="site-logo">{WEBSITE_TITLE}</div>
         <button id="bookmark-toggle" onclick="togglePanel()">SAVED</button>
     </div>
-
     <div id="ticker-bar">
-        <div id="ticker-content">
-            {ticker_html}
-            {ticker_html}
-        </div>
+        <div id="ticker-content">{ticker_html}{ticker_html}</div>
     </div>
-
-    <div id="main-content">
-        {all_cards}
-    </div>
-
+    <div id="main-content">{cards}</div>
     <div id="bookmark-panel">
         <h3>SAVED REPORTS</h3>
         <ul id="bookmark-list"></ul>
     </div>
-
-    <script>
-{BOOKMARK_JS}
-    </script>
-
+    <script>{BOOKMARK_JS}</script>
 </body>
 </html>"""
 
     with open("index.html", "w", encoding="utf-8") as f:
         f.write(html)
-    print("index.html updated successfully!")
+    print("index.html ready!")
 
 
-# ============================================================
-#  SECTION 10: MAIN PROCESS
-#  Scans pdfs/ folder, processes new PDFs only
-#  Newest reports appear FIRST
-# ============================================================
+# ================================================================
+#  STEP 14: MAIN PROCESS
+#
+#  Yeh code sab kuch chalata hai:
+#  1. pdfs/ folder scan karo
+#  2. Naye PDFs dhundho (jo processed.json mein nahi hain)
+#  3. Har nayi PDF ko process karo (title, bullets, summary, tables)
+#  4. processed.json mein save karo
+#  5. Live ticker data fetch karo
+#  6. index.html update karo
+#
+#  NOTE: Agar koi PDF pehle se process ho chuki hai toh dobara nahi hogi
+#  Sab reprocess karna ho toh: del processed.json
+# ================================================================
 
-pdf_folder = "pdfs"
-processed_file = "processed.json"
+pdf_folder     = "pdfs"           # PDFs yahan rakho
+processed_file = "processed.json" # Already processed PDFs ki list
 
-if os.path.exists(processed_file):
-    with open(processed_file, "r") as f:
-        processed_data = json.load(f)
-else:
-    processed_data = {}
+# Pehle se processed data load karo (ya empty dict banao)
+processed = json.load(open(processed_file)) if os.path.exists(processed_file) else {}
+new_found  = False
 
-new_found = False
-
+# Har PDF check karo
 for filename in os.listdir(pdf_folder):
-    if filename.endswith(".pdf") and filename not in processed_data:
-        print(f"\nNew PDF found, processing: {filename}")
-        filepath = os.path.join(pdf_folder, filename)
+    if not filename.endswith(".pdf") or filename in processed:
+        continue  # PDF nahi hai ya pehle se process ho chuki hai
 
-        text   = pdf_se_text_nikalo(filepath)
-        title  = title_nikalo(text, filename)
-        sector = sector_detect(text, filename)
-        points = key_points_nikalo(text)
-        tables = tables_nikalo(filepath)
+    print(f"\nProcessing: {filename}")
+    filepath = os.path.join(pdf_folder, filename)
+    text     = pdf_text(filepath)
+    sector   = detect_sector(text, filename)
+    print(f"  Sector: {sector}")
 
-        print(f"  Title:  {title[:80]}...")
-        print(f"  Sector: {sector}")
+    # Gemini se sab kuch banwao
+    print(f"  Generating AI title...")
+    title = ai_title(text, filename)
+    print(f"  Title: {title[:70]}")
 
-        # Gemini AI Summary
-        print(f"  Generating AI summary...")
-        summary = gemini_summary(text, filename)
-        if summary:
-            print(f"  Summary: {summary[:80]}...")
-        else:
-            print(f"  Summary: Gemini unavailable, using bullet points only")
+    print(f"  Generating AI bullets...")
+    bullets = ai_bullets(text, sector)
 
-        if tables:
-            print(f"  Found {len(tables)} table(s)")
-        else:
-            print(f"  No tables found")
+    print(f"  Generating AI summary...")
+    summary = ai_summary(text, sector, filename)
 
-        processed_data[filename] = {
-            'title':   title,
-            'sector':  sector,
-            'summary': summary,
-            'points':  points,
-            'tables':  tables
-        }
-        new_found = True
+    print(f"  Extracting tables...")
+    tables = tables_nikalo(filepath)
+    print(f"  Tables found: {len(tables)}")
 
+    # Is PDF ka data save karo
+    processed[filename] = {
+        'title':   title,
+        'sector':  sector,
+        'points':  bullets,
+        'summary': summary,
+        'tables':  tables,
+    }
+    new_found = True
+
+# Processed data save karo
 if new_found:
     with open(processed_file, "w") as f:
-        json.dump(processed_data, f, indent=2)
-    print("\nNew PDF(s) processed and saved!")
+        json.dump(processed, f, indent=2)
+    print("\nAll PDFs processed!")
 else:
     print("No new PDFs found.")
 
-# Fetch live ticker data
-ticker_items = fetch_ticker_data()
+# Live ticker data fetch karo
+ticker_items = fetch_ticker()
 
-# Build website
-website_banao(list(reversed(list(processed_data.values()))), ticker_items)
-print("Website updated successfully!")
+# Website banao — newest reports pehle
+build_website(list(reversed(list(processed.values()))), ticker_items)
+print("Done! Open index.html to see the website.")
