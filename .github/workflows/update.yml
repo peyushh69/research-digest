@@ -1,0 +1,37 @@
+name: Auto Update Quantis
+
+on:
+  schedule:
+    - cron: '45 3 * * 1-5'   # 9:15 AM IST  (Mon-Fri)
+    - cron: '30 5 * * 1-5'   # 11:00 AM IST (Mon-Fri)
+    - cron: '00 10 * * 1-5'  # 3:30 PM IST  (Mon-Fri)
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install libraries
+        run: |
+          pip install pymupdf pdfplumber yfinance google-genai python-dotenv
+
+      - name: Run generate.py
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python generate.py
+
+      - name: Push updated site
+        run: |
+          git config user.name "Quantis Bot"
+          git config user.email "bot@quantis"
+          git add index.html processed.json
+          git diff --cached --quiet || git commit -m "Auto update $(date +'%d %b %Y %H:%M IST')"
+          git push
