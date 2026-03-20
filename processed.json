@@ -307,5 +307,311 @@
     "tables": [],
     "table_descs": [],
     "added_at": "2026-03-19T21:32:56.432621"
+  },
+  "DAM Capital - Iran War Sector IMpact.pdf": {
+    "title": "Iran War Hits Energy Sectors",
+    "sector": "ENERGY",
+    "points": [
+      "Gulf supplies 20% of world's LNG",
+      "Gulf accounts for 45% of global sulphur exports",
+      "India's oil import dependency is 87%",
+      "Gulf produces 9% of world's total aluminium"
+    ],
+    "summary": "A war in Iran may disrupt global energy supplies. This matters for India's economy as it may increase the country's deficit and inflation.",
+    "commentary": [
+      "Iran war affects global oil, gas, and helium supplies. Gulf supplies 20% of world's LNG, 1/3 of helium, and 45% of sulphur. India's deficit may rise by Rs 100bn with every $1 increase in crude oil price, affecting fertilizers and inflation."
+    ],
+    "quantis_view": "The Iran war signals upside pressure on energy prices, potentially triggering rate cuts, with the energy sector set to benefit, while fertilizer, aluminium, and methanol producers may face downside risks due to disrupted supply chains.",
+    "tables": [
+      [
+        [
+          "Particulars",
+          "LNG (MMT)",
+          "LPG (MMT)",
+          "Oil (mbpd)"
+        ],
+        [
+          "India's total consumption",
+          "54.4",
+          "31.0",
+          "5.5"
+        ],
+        [
+          "Of which imported",
+          "26.5",
+          "21.0",
+          "4.8"
+        ],
+        [
+          "Dependency",
+          "49%",
+          "68%",
+          "87%"
+        ],
+        [
+          "Imports via Strait of Hormuz",
+          "15.9",
+          "18.9",
+          "2.6"
+        ],
+        [
+          "Strait as % of India's imports",
+          "60%",
+          "90%",
+          "54%"
+        ],
+        [
+          "Strait as % of India's total consumption",
+          "29%",
+          "61%",
+          "47%"
+        ],
+        [
+          "Inventory with India (days)",
+          "4-5",
+          "15-20",
+          "40"
+        ],
+        [
+          "Total consumption in world",
+          "3,095",
+          "345",
+          "104"
+        ],
+        [
+          "Of which, traded via sea",
+          "410",
+          "140",
+          "80"
+        ],
+        [
+          "Of which via Strait of Hormuz (net)",
+          "82",
+          "45",
+          "8"
+        ],
+        [
+          "Strait as % of total seaborne exports",
+          "20%",
+          "32%",
+          "10%"
+        ],
+        [
+          "Strait as % of total consumption in the\nworld",
+          "3%",
+          "13%",
+          "8%"
+        ]
+      ],
+      [
+        [
+          "Commodity",
+          "Production",
+          "Consumption",
+          "Export/\n(Import)"
+        ],
+        [
+          "Oil",
+          "29.9",
+          "270.0",
+          "-240.1"
+        ],
+        [
+          "Natural Gas",
+          "27.9",
+          "54.4",
+          "-26.5"
+        ],
+        [
+          "Oil products -",
+          "",
+          "",
+          ""
+        ],
+        [
+          "Petrol",
+          "48.1",
+          "40.0",
+          "8.1"
+        ],
+        [
+          "Diesel",
+          "118.0",
+          "91.4",
+          "26.6"
+        ],
+        [
+          "LPG",
+          "12.8",
+          "31.3",
+          "-18.5"
+        ],
+        [
+          "ATF",
+          "17.8",
+          "9.0",
+          "8.8"
+        ],
+        [
+          "Bitumen",
+          "5.3",
+          "8.3",
+          "-3.0"
+        ],
+        [
+          "Petcoke",
+          "15.0",
+          "22.1",
+          "-7.1"
+        ]
+      ]
+    ],
+    "table_descs": [
+      "Energy consumption and import metrics by type and source.",
+      "Energy sector production and trade metrics."
+    ],
+    "added_at": "2026-03-20T16:17:55.398169"
+  },
+  "Indian_Paints_Sector_Channel_checks_10_03_2026_Systematix.pdf": {
+    "title": "Indian Paints Sector Sees Pricing Upside Amid Volatile Crude",
+    "sector": "ENERGY",
+    "points": [
+      "Brent crude up 10-12%",
+      "Crude up 10% QoQ",
+      "Demand growth mid-single",
+      "Volume growth 13-14%"
+    ],
+    "summary": "India's paint sector may see price hikes due to high crude oil costs. This matters for India's economy as stable demand and potential price increases could impact the sector's growth.",
+    "commentary": [
+      "Crude oil prices up 10-12% in 5 days. Paint dealers expect 2-5% price hikes in April if prices sustain. Demand remains stable with mid-single digit growth."
+    ],
+    "quantis_view": "Volatile crude prices may exert upside pressure on Indian paint stocks, with potential low-single digit price hikes in 1Q27, although downside risk to margins remains, particularly if crude sustains at elevated levels.",
+    "tables": [
+      [
+        [
+          "Stocks",
+          "",
+          "TP\n(Rs)",
+          "Upside /",
+          "Reco."
+        ],
+        [
+          "",
+          "CMP",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "Downside",
+          ""
+        ],
+        [
+          "",
+          "(Rs)",
+          "",
+          "",
+          ""
+        ],
+        [
+          "",
+          "",
+          "",
+          "(%)",
+          ""
+        ],
+        [
+          "APNT",
+          "",
+          "3,160",
+          "",
+          "BUY"
+        ],
+        [
+          "",
+          "2,295",
+          "",
+          "38%",
+          ""
+        ],
+        [
+          "BRGR",
+          "437",
+          "570",
+          "30%",
+          "BUY"
+        ],
+        [
+          "KNPL",
+          "",
+          "225",
+          "",
+          "HOLD"
+        ],
+        [
+          "",
+          "186",
+          "",
+          "21%",
+          ""
+        ]
+      ],
+      [
+        [
+          "Stocks",
+          "6-mnth",
+          "1yr",
+          "3yr",
+          "5yr"
+        ],
+        [
+          "APNT",
+          "-11.3%",
+          "-0.4%",
+          "-7.3%",
+          "-1.2%"
+        ],
+        [
+          "BRGR",
+          "-17.7%",
+          "-12.9%",
+          "-3.9%",
+          "-6.1%"
+        ],
+        [
+          "KNPL",
+          "-25.2%",
+          "-20.6%",
+          "-11.9%",
+          "-13.4%"
+        ]
+      ]
+    ],
+    "table_descs": [
+      "Stock prices and target prices are shown.",
+      "Stock returns over various time periods."
+    ],
+    "added_at": "2026-03-20T16:18:54.459463"
+  },
+  "The Digital-First Bank\u2019s Guide to AI in 2026.pdf": {
+    "title": "AI Investment in Banks to Hit $97 Billion",
+    "sector": "ENERGY",
+    "points": [
+      "ENERGY sector not mentioned",
+      "$35 billion invested in AI",
+      "$97 billion by 2027 predicted",
+      "Financial institutions invest heavily"
+    ],
+    "summary": "Banks are investing heavily in AI for better services. This matters for India's economy as it upgrades the banking sector.",
+    "commentary": [
+      "$35 billion invested in AI by financial institutions in 1 year, expected to reach $97 billion by 2027."
+    ],
+    "quantis_view": "The data signals upside for tech and fintech stocks, with potential upside pressure on interest rates as $97b in AI investments by 2027 may lead to increased efficiency and reduced labor costs in the financial sector.",
+    "tables": [],
+    "table_descs": [],
+    "added_at": "2026-03-20T16:19:48.096577"
   }
 }
