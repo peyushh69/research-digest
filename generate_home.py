@@ -386,10 +386,7 @@ def build_home(reports, ticker_items):
 <body>
     <div id="site-header">
         <div id="site-logo">{WEBSITE_TITLE}</div>
-        <div style="display:flex;align-items:center;gap:14px;">
-            <button id="bookmark-toggle" onclick="togglePanel()">SAVED</button>
-            <button id="hamburger" onclick="toggleMenu()" style="background:none;border:none;cursor:pointer;color:#888;font-size:1.4em;padding:0;line-height:1;">&#9776;</button>
-        </div>
+        <button id="hamburger" onclick="toggleMenu()" style="background:none;border:none;cursor:pointer;color:#888;font-size:1.4em;padding:0;line-height:1;">&#9776;</button>
     </div>
     <div id="nav-drawer">
         <div id="nav-drawer-header">
