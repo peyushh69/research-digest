@@ -464,6 +464,50 @@ WEBSITE_CSS = """
         letter-spacing: 3px;
     }
 
+    /* ---- HAMBURGER DRAWER ---- */
+    #nav-drawer {
+        position: fixed;
+        top: 0; right: -260px;
+        width: 240px;
+        height: 100vh;
+        background: #050505;
+        border-left: 1px solid #1a1a1a;
+        z-index: 999;
+        padding: 20px 0;
+        transition: right 0.25s ease;
+    }
+    #nav-drawer.open { right: 0; }
+    #nav-drawer-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 20px 16px;
+        border-bottom: 1px solid #1a1a1a;
+        margin-bottom: 10px;
+    }
+    .drawer-link {
+        display: block;
+        padding: 14px 20px;
+        color: #555;
+        text-decoration: none;
+        font-size: 0.80em;
+        font-weight: 700;
+        letter-spacing: 3px;
+        border-bottom: 1px solid #0f0f0f;
+        transition: color 0.2s;
+    }
+    .drawer-link:hover { color: #fff; background: #0a0a0a; }
+    .drawer-link.active { color: #ff6600; }
+    #nav-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.6);
+        z-index: 998;
+    }
+    #nav-overlay.open { display: block; }
+
     /* SAVED button */
     #bookmark-toggle {
         background: #1a1a1a;
@@ -852,6 +896,12 @@ Trader-style answer (max 150 chars):`
     }
 
     window.onload = function() { showBookmarks(); markSaved(); };
+
+    // Hamburger menu toggle
+    function toggleMenu() {
+        document.getElementById('nav-drawer').classList.toggle('open');
+        document.getElementById('nav-overlay').classList.toggle('open');
+    }
 """
 
 
@@ -983,8 +1033,26 @@ def build_website(reports, ticker_items):
 <body>
     <div id="site-header">
         <div id="site-logo">{WEBSITE_TITLE}</div>
-        <button id="bookmark-toggle" onclick="togglePanel()">SAVED</button>
+        <div style="display:flex;align-items:center;gap:14px;">
+            <button id="bookmark-toggle" onclick="togglePanel()">SAVED</button>
+            <button id="hamburger" onclick="toggleMenu()" style="background:none;border:none;cursor:pointer;color:#888;font-size:1.4em;padding:0;line-height:1;">&#9776;</button>
+        </div>
     </div>
+    <!-- Hamburger Drawer -->
+    <div id="nav-drawer">
+        <div id="nav-drawer-header">
+            <span style="color:#ff6600;font-size:0.75em;letter-spacing:3px;font-weight:700;">MENU</span>
+            <button onclick="toggleMenu()" style="background:none;border:none;color:#444;cursor:pointer;font-size:1.2em;">&#10005;</button>
+        </div>
+        <nav id="drawer-nav">
+            <a href="index.html" class="drawer-link">HOME</a>
+            <a href="research.html" class="drawer-link active">RESEARCH</a>
+            <a href="market.html" class="drawer-link">MARKET</a>
+            <a href="economy.html" class="drawer-link">ECONOMY</a>
+            <a href="#" class="drawer-link" onclick="togglePanel();toggleMenu();">SAVED</a>
+        </nav>
+    </div>
+    <div id="nav-overlay" onclick="toggleMenu()"></div>
     <div id="ticker-bar">
         <div id="ticker-content">{ticker_html}{ticker_html}</div>
     </div>
@@ -997,9 +1065,9 @@ def build_website(reports, ticker_items):
 </body>
 </html>"""
 
-    with open("index.html", "w", encoding="utf-8") as f:
+    with open("research.html", "w", encoding="utf-8") as f:
         f.write(html)
-    print("index.html ready!")
+    print("research.html ready!")
 
 
 # ================================================================

@@ -1,10 +1,73 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quantis</title>
-    <style>
+# ================================================================
+#  QUANTIS — HOME PAGE GENERATOR
+#
+#  Yeh file kya karti hai:
+#  1. processed.json se latest research report leta hai
+#  2. Har section ka latest card dikhata hai
+#  3. index.html (home page) banata hai
+#
+#  Kaise chalayein:
+#  Terminal mein: python generate_home.py
+#
+#  NOTE: Pehle generate.py chalao — research.html aur processed.json
+#  ban jaayenge, phir yeh file chalao
+# ================================================================
+
+import os
+import json
+import yfinance as yf
+from datetime import datetime
+from dotenv import load_dotenv
+
+load_dotenv()
+os.environ.pop("GOOGLE_API_KEY", None)
+
+WEBSITE_TITLE = "Quantis"
+
+# ================================================================
+#  TICKER — same as generate.py
+# ================================================================
+
+def fetch_ticker():
+    symbols = {
+        "NIFTY 50":   "^NSEI",
+        "SENSEX":     "^BSESN",
+        "BANK NIFTY": "^NSEBANK",
+        "S&P 500":    "^GSPC",
+        "NASDAQ":     "^IXIC",
+        "DOW JONES":  "^DJI",
+        "GOLD":       "GC=F",
+        "CRUDE OIL":  "CL=F",
+        "USD/INR":    "INR=X",
+    }
+    items = []
+    for name, sym in symbols.items():
+        try:
+            hist  = yf.Ticker(sym).history(period="2d")
+            if hist.empty:
+                raise ValueError("no data")
+            cur   = hist['Close'].iloc[-1]
+            prev  = hist['Close'].iloc[-2] if len(hist) >= 2 else cur
+            chg   = ((cur - prev) / prev) * 100
+            arrow = "▲" if chg >= 0 else "▼"
+            sign  = "+" if chg >= 0 else ""
+            if name in ["GOLD", "CRUDE OIL"]:
+                val = f"${cur:,.2f}"
+            elif name == "USD/INR":
+                val = f"₹{cur:.2f}"
+            else:
+                val = f"{cur:,.2f}"
+            items.append(f"{name} &nbsp; {val} &nbsp; {arrow} {sign}{chg:.2f}%")
+        except:
+            items.append(f"{name} &nbsp; -- &nbsp; N/A")
+    return items
+
+
+# ================================================================
+#  HOME PAGE CSS
+# ================================================================
+
+HOME_CSS = """
     @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&display=swap');
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -254,11 +317,75 @@
         border-bottom: 1px solid #0f0f0f;
     }
     #bookmark-list li:hover { color: #fff; }
-</style>
+"""
+
+# ================================================================
+#  HOME PAGE JS
+# ================================================================
+
+HOME_JS = """
+    function togglePanel() {
+        const p = document.getElementById('bookmark-panel');
+        p.style.display = p.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function showBookmarks() {
+        let bm = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+        document.getElementById('bookmark-list').innerHTML = bm.length === 0
+            ? '<li style="color:#333;cursor:default;">No saved reports</li>'
+            : bm.map((b,i) => `<li>${b}</li>`).join('');
+        document.getElementById('bookmark-toggle').innerHTML =
+            bm.length > 0 ? 'SAVED ['+bm.length+']' : 'SAVED';
+    }
+
+    window.onload = function() { showBookmarks(); };
+
+    function toggleMenu() {
+        document.getElementById('nav-drawer').classList.toggle('open');
+        document.getElementById('nav-overlay').classList.toggle('open');
+    }
+"""
+
+# ================================================================
+#  BUILD HOME PAGE
+# ================================================================
+
+def build_home(reports, ticker_items):
+    today       = datetime.today().strftime('%d %B %Y')
+    ticker_html = "".join(f'<span>{t}</span>' for t in ticker_items)
+
+    # Latest 3 research reports
+    research_cards = ""
+    for r in reports[:3]:
+        title    = r.get('title', 'Untitled')
+        sector   = r.get('sector', 'RESEARCH')
+        bullets  = r.get('points', [])[:2]
+        qv       = r.get('quantis_view', '')
+        bul_html = "".join(f"<li>{b}</li>" for b in bullets)
+        qv_html  = f'<div class="preview-qv"><span class="preview-qv-label">QUANTIS VIEW</span>{qv}</div>' if qv else ""
+
+        research_cards += f"""
+        <a href="research.html" class="preview-card">
+            <h3>{title}</h3>
+            <div class="preview-meta">
+                <span class="preview-date">{today}</span>
+                <span class="preview-sector">{sector}</span>
+            </div>
+            <ul class="preview-bullets">{bul_html}</ul>
+            {qv_html}
+        </a>"""
+
+    html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{WEBSITE_TITLE}</title>
+    <style>{HOME_CSS}</style>
 </head>
 <body>
     <div id="site-header">
-        <div id="site-logo">Quantis</div>
+        <div id="site-logo">{WEBSITE_TITLE}</div>
         <div style="display:flex;align-items:center;gap:14px;">
             <button id="bookmark-toggle" onclick="togglePanel()">SAVED</button>
             <button id="hamburger" onclick="toggleMenu()" style="background:none;border:none;cursor:pointer;color:#888;font-size:1.4em;padding:0;line-height:1;">&#9776;</button>
@@ -279,7 +406,7 @@
     </div>
     <div id="nav-overlay" onclick="toggleMenu()"></div>
     <div id="ticker-bar">
-        <div id="ticker-content"><span>NIFTY 50 &nbsp; 23,138.10 &nbsp; ▲ +0.00%</span><span>SENSEX &nbsp; 74,656.83 &nbsp; ▲ +0.00%</span><span>BANK NIFTY &nbsp; 53,441.90 &nbsp; ▲ +0.00%</span><span>S&P 500 &nbsp; 6,606.49 &nbsp; ▼ -0.27%</span><span>NASDAQ &nbsp; 22,090.69 &nbsp; ▼ -0.28%</span><span>DOW JONES &nbsp; 46,021.43 &nbsp; ▼ -0.44%</span><span>GOLD &nbsp; $4,675.20 &nbsp; ▲ +1.62%</span><span>CRUDE OIL &nbsp; $95.53 &nbsp; ▼ -0.63%</span><span>USD/INR &nbsp; ₹93.60 &nbsp; ▲ +0.38%</span><span>NIFTY 50 &nbsp; 23,138.10 &nbsp; ▲ +0.00%</span><span>SENSEX &nbsp; 74,656.83 &nbsp; ▲ +0.00%</span><span>BANK NIFTY &nbsp; 53,441.90 &nbsp; ▲ +0.00%</span><span>S&P 500 &nbsp; 6,606.49 &nbsp; ▼ -0.27%</span><span>NASDAQ &nbsp; 22,090.69 &nbsp; ▼ -0.28%</span><span>DOW JONES &nbsp; 46,021.43 &nbsp; ▼ -0.44%</span><span>GOLD &nbsp; $4,675.20 &nbsp; ▲ +1.62%</span><span>CRUDE OIL &nbsp; $95.53 &nbsp; ▼ -0.63%</span><span>USD/INR &nbsp; ₹93.60 &nbsp; ▲ +0.38%</span></div>
+        <div id="ticker-content">{ticker_html}{ticker_html}</div>
     </div>
     <div id="main-content">
 
@@ -289,25 +416,7 @@
                 <span class="section-title">LATEST RESEARCH</span>
                 <a href="research.html" class="section-viewall">VIEW ALL →</a>
             </div>
-            
-        <a href="research.html" class="preview-card">
-            <h3>WPI Inflation Hits 11-Month High</h3>
-            <div class="preview-meta">
-                <span class="preview-date">20 March 2026</span>
-                <span class="preview-sector">INFLATION</span>
-            </div>
-            <ul class="preview-bullets"><li>WPI touches 11 month high</li><li>Headline WPI at 2.13% YoY</li></ul>
-            <div class="preview-qv"><span class="preview-qv-label">QUANTIS VIEW</span>Rising WPI and food inflation may exert upside pressure on interest rates, posing downside risk to rate-sensitive sectors, while crude oil price volatility may add to inflationary concerns.</div>
-        </a>
-        <a href="research.html" class="preview-card">
-            <h3>India Feb CPI inflation rises to 3.21 percent</h3>
-            <div class="preview-meta">
-                <span class="preview-date">20 March 2026</span>
-                <span class="preview-sector">INFLATION</span>
-            </div>
-            <ul class="preview-bullets"><li>Feb'26 CPI is 3.21%</li><li>Food inflation is 3.35%</li></ul>
-            <div class="preview-qv"><span class="preview-qv-label">QUANTIS VIEW</span>The upside surprise in Feb'26 CPI may exert pressure on interest rates, though the subdued core inflation and expected muted food inflation in FY26 may limit the downside for bonds and support select consumer staples stocks.</div>
-        </a>
+            {research_cards}
         </div>
 
         <!-- MARKET SECTION — placeholder -->
@@ -333,27 +442,36 @@
         <h3>SAVED REPORTS</h3>
         <ul id="bookmark-list"></ul>
     </div>
-    <script>
-    function togglePanel() {
-        const p = document.getElementById('bookmark-panel');
-        p.style.display = p.style.display === 'none' ? 'block' : 'none';
-    }
-
-    function showBookmarks() {
-        let bm = JSON.parse(localStorage.getItem('bookmarks') || '[]');
-        document.getElementById('bookmark-list').innerHTML = bm.length === 0
-            ? '<li style="color:#333;cursor:default;">No saved reports</li>'
-            : bm.map((b,i) => `<li>${b}</li>`).join('');
-        document.getElementById('bookmark-toggle').innerHTML =
-            bm.length > 0 ? 'SAVED ['+bm.length+']' : 'SAVED';
-    }
-
-    window.onload = function() { showBookmarks(); };
-
-    function toggleMenu() {
-        document.getElementById('nav-drawer').classList.toggle('open');
-        document.getElementById('nav-overlay').classList.toggle('open');
-    }
-</script>
+    <script>{HOME_JS}</script>
 </body>
-</html>
+</html>"""
+
+    with open("index.html", "w", encoding="utf-8") as f:
+        f.write(html)
+    print("index.html (home page) ready!")
+
+
+# ================================================================
+#  MAIN
+# ================================================================
+
+processed_file = "processed.json"
+
+if not os.path.exists(processed_file):
+    print("processed.json nahi mila — pehle python generate.py chalao!")
+    exit()
+
+processed = json.load(open(processed_file))
+
+# Newest first sort
+sorted_reports = sorted(
+    processed.values(),
+    key=lambda r: r.get('added_at', ''),
+    reverse=True
+)
+
+print("Fetching ticker data...")
+ticker_items = fetch_ticker()
+
+build_home(sorted_reports, ticker_items)
+print("Done! index.html home page ready!")
