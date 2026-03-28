@@ -1,0 +1,41 @@
+{
+  "date": "27 MAR 2026",
+  "cash": {
+    "buy": 0,
+    "sell": 0,
+    "net": 0
+  },
+  "index_fut": {
+    "long": 0,
+    "short": 0,
+    "net": 0
+  },
+  "stock_fut": {
+    "long": 0,
+    "short": 0,
+    "net": 0
+  },
+  "index_opt": {
+    "call_long": 0,
+    "call_short": 0,
+    "put_long": 0,
+    "put_short": 0,
+    "net": 0
+  },
+  "stock_opt": {
+    "net": 0
+  },
+  "error": "NSE APIs returned zero data \u2014 market may be closed or APIs changed",
+  "analysis": {
+    "verdict": "AGGRESSIVE ACCUMULATE",
+    "verdict_col": "#00cc44",
+    "verdict_detail": "Cash buy + futures LONG \u2014 Strong bullish conviction. FII accumulating hard. Bullish setup.",
+    "risk": "VERY LOW",
+    "risk_col": "#00cc44",
+    "cash_dir": "BUY",
+    "fut_dir": "LONG",
+    "total_net": 0,
+    "opt_signal": "NEUTRAL",
+    "opt_col": "#888"
+  }
+}
