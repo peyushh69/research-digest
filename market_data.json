@@ -1,14 +1,14 @@
 {
   "m1": {
     "cash": {
-      "buy": 20486.39,
-      "sell": 24853.69,
-      "net": -4367.3
+      "buy": 0,
+      "sell": 0,
+      "net": 0
     },
     "dii_cash": {
-      "buy": 37579.14,
-      "sell": 34012.99,
-      "net": 3566.15
+      "buy": 0,
+      "sell": 0,
+      "net": 0
     },
     "index_fut": {
       "long": 0,
@@ -26,14 +26,14 @@
     "stock_opt": {
       "net": 0
     },
-    "date": "27-MAR-2026",
-    "verdict": "HEDGE",
-    "verdict_col": "#4488ff",
-    "verdict_detail": "Cash sell lekin futures LONG \u2014 FII hedge kar raha hai, exit nahi. Market nahi girega much.",
+    "date": "28 MAR 2026",
+    "verdict": "BUYING",
+    "verdict_col": "#00cc44",
+    "verdict_detail": "FII cash buy kar raha hai. Add fii_stats.xls for complete picture.",
     "risk": "LOW",
-    "cash_dir": "SELL",
-    "fut_dir": "LONG",
-    "total_net": -4367.3
+    "cash_dir": "BUY",
+    "fut_dir": "NO DATA",
+    "total_net": 0
   },
   "m4": {
     "sectors": {
@@ -77,7 +77,7 @@
       ]
     ],
     "risk_mode": "RISK-OFF",
-    "signal": "Defensives lead \u2014 RISK-OFF mode",
+    "signal": "Defensives outperforming \u2014 RISK-OFF mode active",
     "signal_col": "#4488ff",
     "advances": 259,
     "declines": 2243,
@@ -91,15 +91,15 @@
       "SAIL"
     ],
     "ban_date": "30-MAR-2026",
-    "fii_idx_long": 0,
-    "fii_idx_short": 0,
-    "fii_stk_long": 0,
-    "fii_stk_short": 0,
-    "fii_ls_ratio": 0,
-    "fii_signal": "NO DATA",
+    "fii_idx_long": 48853.0,
+    "fii_idx_short": 286979.0,
+    "fii_stk_long": 4153709.0,
+    "fii_stk_short": 3172832.0,
+    "fii_ls_ratio": 1.21,
+    "fii_signal": "FII NEUTRAL",
     "risk_level": "NORMAL",
     "risk_col": "#00cc44",
-    "risk_detail": "Ban 1 stocks. Leverage within normal range.",
+    "risk_detail": "1 stocks in ban. Leverage within normal range.",
     "date": "28 MAR 2026"
   },
   "date": "28 MAR 2026"
