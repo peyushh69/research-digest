@@ -3,396 +3,477 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QUANTIS — Market Intelligence</title>
+    <title>Quantis — Market Intelligence</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&display=swap');
-        * { box-sizing:border-box; margin:0; padding:0; }
-        body {
-            font-family: 'IBM Plex Mono', monospace;
-            background: #000000;
-            color: #ffffff;
-            font-size: 12px;
-            line-height: 1.4;
-            padding-bottom: 40px;
-        }
-        #site-header {
-            background: #000000;
-            border-bottom: 2px solid #ff6600;
-            padding: 14px 24px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        #site-logo { font-size:1.6em; font-weight:700; color:#fff; letter-spacing:3px; }
-        .nav-tabs { display:flex; }
-        .nav-tab {
-            padding: 6px 16px;
-            font-size: 0.7em;
-            letter-spacing: 2px;
-            color: #444444;
-            cursor: pointer;
-            border: 1px solid transparent;
-            font-family: 'IBM Plex Mono', monospace;
-            text-decoration: none;
-        }
-        .nav-tab.active { color:#ff6600; border:1px solid #ff6600; }
-        .nav-tab:hover  { color:#888888; }
-        #ticker-bar {
-            background: #ffffff;
-            color: #000000;
-            font-size: 0.75em;
-            font-weight: 700;
-            padding: 5px 0;
-            overflow: hidden;
-            white-space: nowrap;
-            border-bottom: 1px solid #dddddd;
-        }
-        #ticker-content { display:inline-block; animation:scroll-ticker 90s linear infinite; padding-left:100%; }
-        #ticker-content span { margin-right:60px; color:#000; }
-        @keyframes scroll-ticker { 0%{transform:translateX(0)} 100%{transform:translateX(-100%)} }
-        #status-bar {
-            background: #0a0a0a;
-            border-bottom: 1px solid #111111;
-            padding: 5px 24px;
-            display: flex;
-            gap: 24px;
-            align-items: center;
-            font-size: 0.68em;
-            letter-spacing: 1px;
-        }
-        .st { display:flex; gap:8px; align-items:center; }
-        .st-lbl { color:#333333; }
-        #main-content {
-            max-width: 1200px;
-            margin: 20px auto;
-            padding: 0 24px;
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 1px;
-            background: #111111;
-        }
-        .card { background:#000000; padding:16px 18px; }
-        .card-head {
-            font-size: 0.63em;
-            letter-spacing: 2px;
-            color: #444444;
-            border-bottom: 1px solid #1a1a1a;
-            padding-bottom: 6px;
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .badge { font-size:0.9em; padding:1px 6px; border:1px solid #1a1a1a; color:#333333; letter-spacing:1px; }
-        .verdict-box {
-            border: 1px solid #222222;
-            background: #060606;
-            padding: 12px 14px;
-            margin-bottom: 12px;
-            text-align: center;
-        }
-        .verdict-lbl  { font-size:0.6em; color:#333; letter-spacing:3px; margin-bottom:4px; }
-        .verdict-val  { font-size:1.3em; font-weight:700; letter-spacing:2px; margin-bottom:6px; }
-        .verdict-detail { font-size:0.65em; color:#444; line-height:1.6; }
-        .inner-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1px;
-            background: #111111;
-            margin-bottom: 1px;
-        }
-        .inner-cell { background:#000000; padding:10px 12px; }
-        .inner-head  { font-size:0.62em; color:#444444; letter-spacing:2px; margin-bottom:6px; }
-        .data-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 4px 0;
-            border-bottom: 1px solid #0d0d0d;
-        }
-        .data-row.nb { border:none; }
-        .lbl { color:#555555; font-size:0.82em; letter-spacing:0.5px; }
-        .sub { color:#333333; font-size:0.8em; margin-left:6px; }
-        .pill {
-            margin-top: 6px;
-            padding: 3px 8px;
-            background: #080808;
-            border: 1px solid #1a1a1a;
-            text-align: center;
-            font-size: 0.63em;
-            font-weight: 700;
-            letter-spacing: 2px;
-        }
-        .sector-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 4px 0;
-            border-bottom: 1px solid #080808;
-        }
-        .s-name { color:#666666; font-size:0.72em; width:76px; flex-shrink:0; }
-        .s-bar-bg { flex:1; background:#0a0a0a; height:5px; border-radius:2px; overflow:hidden; }
-        .ban-pill {
-            display: inline-block;
-            padding: 2px 8px;
-            margin: 2px;
-            background: #0a0a0a;
-            border: 1px solid #1a1a1a;
-            color: #ff9944;
-            font-size: 0.7em;
-            letter-spacing: 1px;
-        }
-        .hint-box {
-            margin-top: 10px;
-            padding: 7px 10px;
-            background: #050505;
-            font-size: 0.62em;
-            color: #222222;
-            line-height: 2;
-            border-left: 2px solid #0d0d0d;
-        }
-        #footer {
-            background: #000000;
-            border-top: 1px solid #111111;
-            padding: 8px 24px;
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.62em;
-            color: #1a1a1a;
-            letter-spacing: 1px;
-            margin-top: 2px;
-        }
-        @media (max-width:900px) { #main-content { grid-template-columns:1fr; } }
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&display=swap');
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'IBM Plex Mono', monospace; background: #000; color: #fff; padding-bottom: 60px; }
+
+    /* HEADER — identical to index.html */
+    #site-header { background: #000; border-bottom: 2px solid #ff6600; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+    #site-logo { font-size: 1.6em; font-weight: 700; color: #fff; letter-spacing: 3px; }
+
+    /* NAV DRAWER — identical to index.html */
+    #nav-drawer { position: fixed; top: 0; right: -260px; width: 240px; height: 100vh; background: #050505; border-left: 1px solid #1a1a1a; z-index: 999; padding: 20px 0; transition: right 0.25s ease; }
+    #nav-drawer.open { right: 0; }
+    #nav-drawer-header { display: flex; justify-content: space-between; align-items: center; padding: 0 20px 16px; border-bottom: 1px solid #1a1a1a; margin-bottom: 10px; }
+    .drawer-link { display: block; padding: 14px 20px; color: #555; text-decoration: none; font-size: 0.80em; font-weight: 700; letter-spacing: 3px; border-bottom: 1px solid #0f0f0f; }
+    .drawer-link:hover { color: #fff; background: #0a0a0a; }
+    .drawer-link.active { color: #ff6600; }
+    #nav-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 998; }
+    #nav-overlay.open { display: block; }
+
+    /* TICKER — identical to index.html */
+    #ticker-bar { background: #fff; color: #000; font-size: 0.75em; font-weight: 700; padding: 5px 0; overflow: hidden; white-space: nowrap; border-bottom: 1px solid #ddd; }
+    #ticker-content { display: inline-block; animation: scroll-ticker 90s linear infinite; padding-left: 100%; }
+    #ticker-content span { margin-right: 60px; color: #000; }
+    @keyframes scroll-ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
+
+    /* BOOKMARK PANEL — identical to index.html */
+    #bookmark-panel { position: fixed; top: 90px; right: 20px; width: 265px; max-height: 400px; background: #0a0a0a; border: 1px solid #1a1a1a; padding: 14px; overflow-y: auto; display: none; z-index: 999; border-radius: 2px; }
+    #bookmark-panel h3 { color: #ff6600; letter-spacing: 3px; font-size: 0.70em; border-bottom: 1px solid #1a1a1a; padding-bottom: 8px; margin-bottom: 10px; }
+    #bookmark-list li { font-size: 0.74em; color: #888; padding: 7px 0; cursor: pointer; border-bottom: 1px solid #0f0f0f; }
+    #bookmark-list li:hover { color: #fff; }
+
+    /* ═══ DASHBOARD LAYOUT ═══ */
+    .page-header { padding: 14px 20px; border-bottom: 1px solid #111; display: flex; justify-content: space-between; align-items: center; }
+    .ph-title { font-size: 0.68em; font-weight: 700; color: #ff6600; letter-spacing: 3px; }
+    .ph-meta  { font-size: 0.60em; color: #2a2a2a; letter-spacing: 1px; }
+
+    #dash-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 14px 16px; max-width: 1300px; margin: 0 auto; }
+    @media (max-width: 1100px) { #dash-grid { grid-template-columns: repeat(2,1fr); } }
+    @media (max-width: 680px)  { #dash-grid { grid-template-columns: 1fr; } }
+
+    /* CARD */
+    .card { background: #050505; border: 1px solid #151515; padding: 16px 16px 14px; display: flex; flex-direction: column; gap: 12px; }
+    .card-label { display: flex; justify-content: space-between; align-items: center; font-size: 0.58em; letter-spacing: 2px; color: #2d2d2d; }
+    .card-tag { font-size: 0.85em; padding: 2px 6px; border: 1px solid #1a1a1a; color: #252525; letter-spacing: 1px; }
+
+    /* SIGNAL CHIP */
+    .signal-chip { padding: 12px 14px; border-left: 3px solid; background: #030303; display: flex; flex-direction: column; gap: 5px; }
+    .chip-sub    { font-size: 0.56em; color: #2a2a2a; letter-spacing: 2px; }
+    .chip-verdict { font-size: 1.10em; font-weight: 700; letter-spacing: 1.5px; line-height: 1.1; }
+    .chip-detail  { font-size: 0.61em; color: #3a3a3a; line-height: 1.7; margin-top: 2px; }
+
+    /* DATA ROWS */
+    .dt { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid #0d0d0d; }
+    .dt:last-child { border-bottom: none; }
+    .dt-lbl { font-size: 0.68em; color: #333; letter-spacing: 0.5px; }
+    .dt-val { font-size: 0.76em; font-weight: 700; }
+
+    /* BIG NUMBER */
+    .big-num { font-size: 2.2em; font-weight: 700; line-height: 1; margin: 4px 0 2px; }
+    .big-sub  { font-size: 0.58em; color: #2d2d2d; letter-spacing: 1px; }
+
+    /* SPLIT 2-COL */
+    .split { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .split-col { display: flex; flex-direction: column; gap: 5px; }
+    .split-title { font-size: 0.56em; color: #252525; letter-spacing: 2px; margin-bottom: 2px; }
+
+    /* BARS */
+    .bar-track { height: 4px; background: #0f0f0f; border-radius: 2px; overflow: hidden; margin: 3px 0 5px; }
+    .bar-fill  { height: 100%; border-radius: 2px; }
+    .vs-bar    { display: flex; height: 5px; border-radius: 2px; overflow: hidden; margin: 4px 0 6px; }
+    .vs-g      { background: #22c55e; }
+    .vs-r      { background: #ef4444; flex: 1; }
+
+    /* SECTOR */
+    .sec-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid #090909; }
+    .sec-row:last-child { border-bottom: none; }
+    .sec-name  { font-size: 0.63em; color: #3a3a3a; width: 66px; flex-shrink: 0; }
+    .sec-track { flex: 1; height: 4px; background: #0f0f0f; border-radius: 2px; overflow: hidden; }
+    .sec-fill  { height: 100%; border-radius: 2px; }
+    .sec-val   { font-size: 0.66em; font-weight: 700; width: 62px; text-align: right; flex-shrink: 0; }
+
+    /* BAN PILL */
+    .ban-pill { display: inline-block; padding: 3px 9px; margin: 2px; border: 1px solid #1c1c1c; color: #f97316; font-size: 0.66em; letter-spacing: 1px; }
+    .warn-note { font-size: 0.61em; color: #f97316; padding: 2px 0; }
+
+    /* RATIO TRACK */
+    .ratio-track { position: relative; height: 5px; background: #111; border-radius: 3px; margin: 6px 0; }
+    .ratio-marker { position: absolute; top: -3px; width: 11px; height: 11px; border-radius: 50%; transform: translateX(-50%); }
+
+    /* HINT */
+    .hint { background: #030303; padding: 10px 12px; font-size: 0.60em; color: #1f1f1f; line-height: 2; border-left: 2px solid #0f0f0f; }
+
+    /* FOOTER */
+    #site-footer { padding: 10px 20px; border-top: 1px solid #0f0f0f; display: flex; justify-content: space-between; font-size: 0.57em; color: #1a1a1a; letter-spacing: 1px; margin-top: 4px; }
     </style>
 </head>
 <body>
 
+<!-- HEADER -->
 <div id="site-header">
-    <div id="site-logo">QUANTIS</div>
-    <div class="nav-tabs">
-        <a class="nav-tab" href="index.html">REPORTS</a>
-        <a class="nav-tab active" href="market.html">MARKET</a>
-        <a class="nav-tab" href="economics.html">ECONOMICS</a>
-    </div>
-    <div style="font-size:0.63em;color:#2a2a2a;letter-spacing:2px;">28 MAR 2026</div>
+    <div id="site-logo">Quantis</div>
+    <button onclick="toggleMenu()" style="background:none;border:none;cursor:pointer;color:#888;font-size:1.4em;padding:0;line-height:1;">&#9776;</button>
 </div>
+<div id="nav-drawer">
+    <div id="nav-drawer-header">
+        <span style="color:#ff6600;font-size:0.75em;letter-spacing:3px;font-weight:700;">MENU</span>
+        <button onclick="toggleMenu()" style="background:none;border:none;color:#444;cursor:pointer;font-size:1.2em;">&#10005;</button>
+    </div>
+    <nav>
+        <a href="index.html" class="drawer-link">HOME</a>
+        <a href="research.html" class="drawer-link">RESEARCH</a>
+        <a href="market.html" class="drawer-link active">MARKET</a>
+        <a href="economy.html" class="drawer-link">ECONOMY</a>
+        <a href="#" class="drawer-link" onclick="togglePanel();toggleMenu();">SAVED</a>
+    </nav>
+</div>
+<div id="nav-overlay" onclick="toggleMenu()"></div>
 
+<!-- TICKER -->
 <div id="ticker-bar">
     <div id="ticker-content">
-        <span>NIFTY 50 &nbsp; -- &nbsp; Run generate.py for live ticker</span>
-        <span>SENSEX &nbsp; -- &nbsp; ─</span>
-        <span>BANK NIFTY &nbsp; -- &nbsp; ─</span>
-        <span>GOLD &nbsp; -- &nbsp; ─</span>
-        <span>CRUDE OIL &nbsp; -- &nbsp; ─</span>
-        <span>USD/INR &nbsp; -- &nbsp; ─</span>
+        <span>NIFTY 50 &nbsp; 23,114.50 &nbsp; ▲ +0.00%</span><span>SENSEX &nbsp; 74,532.96 &nbsp; ▲ +0.00%</span><span>BANK NIFTY &nbsp; 53,427.05 &nbsp; ▲ +0.00%</span><span>S&amp;P 500 &nbsp; 6,606.49 &nbsp; ▼ -0.27%</span><span>NASDAQ &nbsp; 22,090.69 &nbsp; ▼ -0.28%</span><span>DOW JONES &nbsp; 46,021.43 &nbsp; ▼ -0.44%</span><span>GOLD &nbsp; $4,657.30 &nbsp; ▲ +1.23%</span><span>CRUDE OIL &nbsp; $95.75 &nbsp; ▼ -0.41%</span><span>USD/INR &nbsp; ₹93.58 &nbsp; ▲ +0.36%</span><span>NIFTY 50 &nbsp; 23,114.50 &nbsp; ▲ +0.00%</span><span>SENSEX &nbsp; 74,532.96 &nbsp; ▲ +0.00%</span><span>BANK NIFTY &nbsp; 53,427.05 &nbsp; ▲ +0.00%</span><span>S&amp;P 500 &nbsp; 6,606.49 &nbsp; ▼ -0.27%</span><span>NASDAQ &nbsp; 22,090.69 &nbsp; ▼ -0.28%</span><span>DOW JONES &nbsp; 46,021.43 &nbsp; ▼ -0.44%</span><span>GOLD &nbsp; $4,657.30 &nbsp; ▲ +1.23%</span><span>CRUDE OIL &nbsp; $95.75 &nbsp; ▼ -0.41%</span><span>USD/INR &nbsp; ₹93.58 &nbsp; ▲ +0.36%</span>
     </div>
 </div>
 
-<div id="status-bar">
-    <div class="st"><span class="st-lbl">M1 FII</span><span style="color:#00cc44;font-weight:700;">BUYING</span></div>
-    <div class="st"><span class="st-lbl">M4 MODE</span><span style="color:#4488ff;font-weight:700;">RISK-OFF</span></div>
-    <div class="st"><span class="st-lbl">M7 RISK</span><span style="color:#00cc44;font-weight:700;">NORMAL</span></div>
-    <div class="st"><span class="st-lbl">A/D</span><span style="color:#888;">259 / 2,243</span></div>
-    <div class="st"><span class="st-lbl">DELIVERY</span><span style="color:#888;">61.0%</span></div>
-    <div class="st"><span class="st-lbl">BAN</span><span style="color:#00cc44;font-weight:700;">1 stocks</span></div>
-    <div class="st" style="margin-left:auto;"><span style="color:#1a1a1a;">NSE DATA · 28 MAR 2026</span></div>
+<!-- PAGE SUB-HEADER -->
+<div class="page-header">
+    <span class="ph-title">MARKET INTELLIGENCE</span>
+    <span class="ph-meta">29 MAR 2026 &nbsp;·&nbsp; <span style="color:#00cc44;font-weight:700;">NORMAL RISK</span> &nbsp;·&nbsp; <span style="color:#4488ff;">RISK-OFF</span></span>
 </div>
 
-<div id="main-content">
+<!-- DASHBOARD GRID -->
+<div id="dash-grid">
+
+
+<!-- M2: OPTIONS SENTIMENT -->
+<div class="card">
+    <div class="card-label">M2 — OPTIONS SENTIMENT <span class="card-tag">PUT-CALL RATIO</span></div>
+    <div class="signal-chip" style="border-left-color:#888888;">
+        <span class="chip-sub">OPTIONS MARKET SIGNAL</span>
+        <span class="chip-verdict" style="color:#888888;">NEUTRAL</span>
+        <span class="chip-detail">PCR 0.88 — Balanced put-call positioning.</span>
+    </div>
+    <div>
+        <div style="font-size:0.56em;color:#252525;letter-spacing:2px;margin-bottom:8px;">PUT / CALL OPEN INTEREST</div>
+        <div class="dt"><span class="dt-lbl">TOTAL PUT OI</span><span class="dt-val" style="color:#22c55e;">13,169,513</span></div>
+        <div class="dt"><span class="dt-lbl">TOTAL CALL OI</span><span class="dt-val" style="color:#ef4444;">15,035,572</span></div>
+        <div class="vs-bar" style="height:7px;margin-top:6px;">
+            <div class="vs-g" style="width:47%;"></div>
+            <div class="vs-r"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:0.58em;color:#252525;margin-top:4px;">
+            <span>PUT 47%</span><span>CALL 53%</span>
+        </div>
+    </div>
+    <div>
+        <div style="font-size:0.56em;color:#252525;letter-spacing:2px;margin-bottom:6px;">PCR GAUGE</div>
+        <div class="big-num" style="color:#888888;">0.88</div>
+        <div class="big-sub">PUT-CALL RATIO</div>
+        <div class="ratio-track" style="margin-top:8px;">
+            <div class="ratio-marker" style="left:44%;background:#888888;"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:0.58em;color:#1f1f1f;margin-top:4px;">
+            <span>EXTREME GREED &lt;0.7</span><span>NEUTRAL 1.0</span><span>FEAR &gt;1.3</span>
+        </div>
+    </div>
+    <div class="hint">
+        PCR &gt;1.3 = extreme fear = contrarian BULLISH<br>
+        PCR 0.7–1.0 = balanced / neutral market<br>
+        PCR &lt;0.7 = extreme greed = contrarian BEARISH
+    </div>
+</div>
+
+<!-- M3: NIFTY TREND -->
+<div class="card">
+    <div class="card-label">M3 — NIFTY TREND + VIX <span class="card-tag">INDEX DATA</span></div>
+    <div class="signal-chip" style="border-left-color:#ef4444;">
+        <span class="chip-sub">INDEX TREND SIGNAL</span>
+        <span class="chip-verdict" style="color:#ef4444;">STRONG DOWNTREND</span>
+        <span class="chip-detail">Nifty -1.83% — Broad weakness. Defensive mode.</span>
+    </div>
+    <div>
+        <div style="font-size:0.56em;color:#252525;letter-spacing:2px;margin-bottom:8px;">INDEX CLOSE PRICES</div>
+        <div class="dt">
+            <span class="dt-lbl">NIFTY 50</span>
+            <span class="dt-val" style="color:#ef4444;">21.51 &nbsp; ▼-1.83%</span>
+        </div>
+        <div class="dt">
+            <span class="dt-lbl">BANK NIFTY</span>
+            <span class="dt-val" style="color:#ef4444;">52.77 &nbsp; ▼-2.40%</span>
+        </div>
+        <div class="dt" style="border:none;">
+            <span class="dt-lbl">MIDCAP 100</span>
+            <span class="dt-val" style="color:#22c55e;">0.00 &nbsp; ▲+0.00%</span>
+        </div>
+    </div>
+    <div>
+        <div style="font-size:0.56em;color:#252525;letter-spacing:2px;margin-bottom:6px;">NIFTY DAY RANGE</div>
+        <div style="display:flex;justify-content:space-between;font-size:0.60em;color:#333;margin-bottom:4px;">
+            <span style="color:#ef4444;">L 21.41</span>
+            <span style="color:#22c55e;">H 22.45</span>
+        </div>
+        <div class="bar-track" style="height:6px;">
+            <div class="bar-fill" style="width:10%;background:#ef4444;"></div>
+        </div>
+    </div>
+    <div>
+        <div style="font-size:0.56em;color:#252525;letter-spacing:2px;margin-bottom:6px;">INDIA VIX (VOLATILITY)</div>
+        <div class="big-num" style="color:#888888;">─</div>
+        <div class="big-sub">NO DATA</div>
+        <div class="ratio-track" style="margin-top:8px;">
+            <div class="ratio-marker" style="left:50%;background:#888888;"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:0.58em;color:#1f1f1f;margin-top:4px;">
+            <span>&lt;12 Low</span><span>12–18 Normal</span><span>18–25 Elevated</span><span>&gt;25 High</span>
+        </div>
+    </div>
+</div>
+
+<!-- M1 -->
+<div class="card">
+    <div class="card-label">M1 — SMART MONEY DIVERGENCE <span class="card-tag">FII CASH + F&amp;O</span></div>
+    <div class="signal-chip" style="border-left-color:#ff3333;">
+        <span class="chip-sub">FII REAL INTENT</span>
+        <span class="chip-verdict" style="color:#ff3333;">REAL EXIT</span>
+        <span class="chip-detail">Cash sell + futures SHORT — Genuine bearish exit. Avoid fresh longs.</span>
+    </div>
+    <div>
+        <div class="dt"><span class="dt-lbl">FII BUY</span><span class="dt-val" style="color:#22c55e;">₹20,486 Cr</span></div>
+        <div class="dt"><span class="dt-lbl">FII SELL</span><span class="dt-val" style="color:#ef4444;">₹24,854 Cr</span></div>
+        <div class="vs-bar"><div class="vs-g" style="width:45%;"></div><div class="vs-r"></div></div>
+        <div class="dt"><span class="dt-lbl" style="color:#888;font-weight:700;">FII NET</span><span class="dt-val" style="color:#ff3333;font-size:0.90em;">₹4,367 Cr</span></div>
+        <div class="dt"><span class="dt-lbl">DII NET</span><span class="dt-val" style="color:#00cc44;">+₹3,566 Cr</span></div>
+        <div class="dt"><span class="dt-lbl">DIRECTION</span><span class="dt-val" style="color:#ff3333;">SELL</span></div>
+    </div>
+    <div class="split">
+        <div class="split-col">
+            <span class="split-title">INDEX FUTURES</span>
+            <div class="dt"><span class="dt-lbl">L</span><span class="dt-val" style="color:#22c55e;">₹18,834</span></div>
+            <div class="dt"><span class="dt-lbl">S</span><span class="dt-val" style="color:#ef4444;">₹25,164</span></div>
+            <div class="dt" style="border:none;"><span class="dt-lbl">NET</span><span class="dt-val" style="color:#ff3333;">₹6,330 Cr</span></div>
+        </div>
+        <div class="split-col">
+            <span class="split-title">STOCK FUTURES</span>
+            <div class="dt"><span class="dt-lbl">L</span><span class="dt-val" style="color:#22c55e;">₹127,605</span></div>
+            <div class="dt"><span class="dt-lbl">S</span><span class="dt-val" style="color:#ef4444;">₹131,024</span></div>
+            <div class="dt" style="border:none;"><span class="dt-lbl">NET</span><span class="dt-val" style="color:#ff3333;">₹3,418 Cr</span></div>
+        </div>
+    </div>
     
-    <div class="card">
-        <div class="card-head">M1 — SMART MONEY DIVERGENCE <span class="badge">FII CASH + F&O</span></div>
-        <div class="verdict-box" style="border-color:#00cc44;">
-            <div class="verdict-lbl">FII REAL INTENT</div>
-            <div class="verdict-val" style="color:#00cc44;">BUYING</div>
-            <div class="verdict-detail">FII cash buy kar raha hai. Add fii_stats.xls for complete picture.</div>
-        </div>
-        <div class="inner-grid">
-            <div class="inner-cell">
-                <div class="inner-head">FII CASH EQUITY</div>
-                <div class="data-row"><span class="lbl">BUY</span><span style="color:#00cc44;font-weight:700;">₹0 Cr</span></div>
-                <div class="data-row"><span class="lbl">SELL</span><span style="color:#ff3333;font-weight:700;">₹0 Cr</span></div>
-                <div class="data-row nb"><span class="lbl" style="color:#aaa;font-weight:700;">NET</span><span style="color:#888888;font-weight:700;font-size:1.1em;">+₹0 Cr</span></div>
-                <div class="pill" style="color:#888888;border-color:#888888;">BUY</div>
-            </div>
-            <div class="inner-cell">
-                <div class="inner-head">INDEX FUTURES</div>
-                <div class="data-row"><span class="lbl">LONG</span><span style="color:#00cc44;font-weight:700;">₹0 Cr</span></div>
-                <div class="data-row"><span class="lbl">SHORT</span><span style="color:#ff3333;font-weight:700;">₹0 Cr</span></div>
-                <div class="data-row nb"><span class="lbl" style="color:#aaa;font-weight:700;">NET</span><span style="color:#888888;font-weight:700;font-size:1.1em;">+₹0 Cr</span></div>
-                <div class="pill" style="color:#888888;border-color:#888888;">NO DATA</div>
-            </div>
-            <div class="inner-cell">
-                <div class="inner-head">STOCK FUTURES</div>
-                <div class="data-row"><span class="lbl">LONG</span><span style="color:#00cc44;font-weight:700;">₹0 Cr</span></div>
-                <div class="data-row"><span class="lbl">SHORT</span><span style="color:#ff3333;font-weight:700;">₹0 Cr</span></div>
-                <div class="data-row nb"><span class="lbl" style="color:#aaa;font-weight:700;">NET</span><span style="color:#888888;font-weight:700;font-size:1.1em;">+₹0 Cr</span></div>
-            </div>
-            <div class="inner-cell">
-                <div class="inner-head">SUMMARY</div>
-                <div class="data-row"><span class="lbl">INDEX OPT NET</span><span style="color:#888888;font-weight:700;">+₹0 Cr</span></div>
-                <div class="data-row"><span class="lbl">TOTAL NET</span><span style="color:#888888;font-weight:700;">+₹0 Cr</span></div>
-                <div class="data-row nb"><span class="lbl">RISK</span><span style="color:#888;font-weight:700;">LOW</span></div>
-            </div>
-        </div>
+</div>
+
+<!-- M4 -->
+<div class="card">
+    <div class="card-label">M4 — SECTOR ROTATION MAP <span class="card-tag">BHAVCOPY</span></div>
+    <div class="signal-chip" style="border-left-color:#4488ff;">
+        <span class="chip-sub">MARKET MODE</span>
+        <span class="chip-verdict" style="color:#4488ff;">RISK-OFF</span>
+        <span class="chip-detail">Defensives outperforming — RISK-OFF mode active</span>
+    </div>
+    <div>
+        <div style="font-size:0.56em;color:#252525;letter-spacing:2px;margin-bottom:8px;">SECTOR PERFORMANCE</div>
         
-        <div style="color:#ff9944;font-size:0.65em;padding:4px 0 2px 0;">⚠ Add fii_stats.xls for complete derivatives picture</div>
-        <div class="hint-box">
-            Cash SELL + Fut LONG &nbsp;= HEDGE — FII nahi nikal raha (Oct 2021 pattern)<br>
-            Cash SELL + Fut SHORT = REAL EXIT — Genuine exit, avoid fresh longs<br>
-            Cash BUY &nbsp;+ Fut LONG &nbsp;= ACCUMULATE — Strong bullish conviction<br>
-            Cash BUY &nbsp;+ Fut SHORT = PROFIT BOOKING — Cautious on upside<br>
-            <span style="color:#111;">Data: 28 MAR 2026</span>
+        <div class="sec-row">
+          <span class="sec-name">PHARMA</span>
+          <div class="sec-track"><div class="sec-fill" style="width:12%;background:#ef4444;"></div></div>
+          <span class="sec-val" style="color:#ef4444;">▼-0.32%</span>
+        </div>
+        <div class="sec-row">
+          <span class="sec-name">IT</span>
+          <div class="sec-track"><div class="sec-fill" style="width:14%;background:#ef4444;"></div></div>
+          <span class="sec-val" style="color:#ef4444;">▼-0.37%</span>
+        </div>
+        <div class="sec-row">
+          <span class="sec-name">TELECOM</span>
+          <div class="sec-track"><div class="sec-fill" style="width:20%;background:#ef4444;"></div></div>
+          <span class="sec-val" style="color:#ef4444;">▼-0.51%</span>
+        </div>
+        <div class="sec-row">
+          <span class="sec-name">ENERGY</span>
+          <div class="sec-track"><div class="sec-fill" style="width:35%;background:#ef4444;"></div></div>
+          <span class="sec-val" style="color:#ef4444;">▼-0.90%</span>
+        </div>
+        <div class="sec-row">
+          <span class="sec-name">METALS</span>
+          <div class="sec-track"><div class="sec-fill" style="width:62%;background:#ef4444;"></div></div>
+          <span class="sec-val" style="color:#ef4444;">▼-1.60%</span>
+        </div>
+        <div class="sec-row">
+          <span class="sec-name">FMCG</span>
+          <div class="sec-track"><div class="sec-fill" style="width:76%;background:#ef4444;"></div></div>
+          <span class="sec-val" style="color:#ef4444;">▼-1.97%</span>
+        </div>
+        <div class="sec-row">
+          <span class="sec-name">INFRA</span>
+          <div class="sec-track"><div class="sec-fill" style="width:82%;background:#ef4444;"></div></div>
+          <span class="sec-val" style="color:#ef4444;">▼-2.12%</span>
+        </div>
+        <div class="sec-row">
+          <span class="sec-name">FINANCE</span>
+          <div class="sec-track"><div class="sec-fill" style="width:93%;background:#ef4444;"></div></div>
+          <span class="sec-val" style="color:#ef4444;">▼-2.39%</span>
+        </div>
+        <div class="sec-row">
+          <span class="sec-name">AUTO</span>
+          <div class="sec-track"><div class="sec-fill" style="width:97%;background:#ef4444;"></div></div>
+          <span class="sec-val" style="color:#ef4444;">▼-2.51%</span>
+        </div>
+        <div class="sec-row">
+          <span class="sec-name">BANKING</span>
+          <div class="sec-track"><div class="sec-fill" style="width:100%;background:#ef4444;"></div></div>
+          <span class="sec-val" style="color:#ef4444;">▼-2.58%</span>
         </div>
     </div>
-    
-    <div class="card">
-        <div class="card-head">M4 — SECTOR ROTATION MAP <span class="badge">BHAVCOPY</span></div>
-        <div class="verdict-box" style="border-color:#4488ff;">
-            <div class="verdict-lbl">MARKET MODE</div>
-            <div class="verdict-val" style="color:#4488ff;">RISK-OFF</div>
-            <div class="verdict-detail">Defensives outperforming — RISK-OFF mode active</div>
+    <div class="split">
+        <div class="split-col">
+            <span class="split-title">MARKET BREADTH</span>
+            <div class="dt"><span class="dt-lbl">ADVANCES</span><span class="dt-val" style="color:#22c55e;">259</span></div>
+            <div class="dt"><span class="dt-lbl">DECLINES</span><span class="dt-val" style="color:#ef4444;">2,243</span></div>
+            <div class="dt" style="border:none;"><span class="dt-lbl">A/D RATIO</span><span class="dt-val" style="color:#ef4444;">0.12</span></div>
+            <div class="vs-bar"><div class="vs-g" style="width:10%;"></div><div class="vs-r"></div></div>
         </div>
-        <div style="margin-bottom:10px;">
-            <div class="inner-head" style="margin-bottom:8px;">SECTOR PERFORMANCE TODAY</div>
-            
-        <div class="sector-row">
-            <span class="s-name">PHARMA</span>
-            <div class="s-bar-bg"><div style="background:#ff3333;height:5px;width:8.96px;border-radius:2px;"></div></div>
-            <span style="color:#ff3333;font-size:0.74em;font-weight:700;width:68px;text-align:right;flex-shrink:0;">▼ -0.32%</span>
-        </div>
-        <div class="sector-row">
-            <span class="s-name">IT</span>
-            <div class="s-bar-bg"><div style="background:#ff3333;height:5px;width:10.36px;border-radius:2px;"></div></div>
-            <span style="color:#ff3333;font-size:0.74em;font-weight:700;width:68px;text-align:right;flex-shrink:0;">▼ -0.37%</span>
-        </div>
-        <div class="sector-row">
-            <span class="s-name">TELECOM</span>
-            <div class="s-bar-bg"><div style="background:#ff3333;height:5px;width:14.280000000000001px;border-radius:2px;"></div></div>
-            <span style="color:#ff3333;font-size:0.74em;font-weight:700;width:68px;text-align:right;flex-shrink:0;">▼ -0.51%</span>
-        </div>
-        <div class="sector-row">
-            <span class="s-name">ENERGY</span>
-            <div class="s-bar-bg"><div style="background:#ff3333;height:5px;width:25.2px;border-radius:2px;"></div></div>
-            <span style="color:#ff3333;font-size:0.74em;font-weight:700;width:68px;text-align:right;flex-shrink:0;">▼ -0.90%</span>
-        </div>
-        <div class="sector-row">
-            <span class="s-name">METALS</span>
-            <div class="s-bar-bg"><div style="background:#ff3333;height:5px;width:44.800000000000004px;border-radius:2px;"></div></div>
-            <span style="color:#ff3333;font-size:0.74em;font-weight:700;width:68px;text-align:right;flex-shrink:0;">▼ -1.60%</span>
-        </div>
-        <div class="sector-row">
-            <span class="s-name">FMCG</span>
-            <div class="s-bar-bg"><div style="background:#ff3333;height:5px;width:55.16px;border-radius:2px;"></div></div>
-            <span style="color:#ff3333;font-size:0.74em;font-weight:700;width:68px;text-align:right;flex-shrink:0;">▼ -1.97%</span>
-        </div>
-        <div class="sector-row">
-            <span class="s-name">INFRA</span>
-            <div class="s-bar-bg"><div style="background:#ff3333;height:5px;width:59.36px;border-radius:2px;"></div></div>
-            <span style="color:#ff3333;font-size:0.74em;font-weight:700;width:68px;text-align:right;flex-shrink:0;">▼ -2.12%</span>
-        </div>
-        <div class="sector-row">
-            <span class="s-name">FINANCE</span>
-            <div class="s-bar-bg"><div style="background:#ff3333;height:5px;width:66.92px;border-radius:2px;"></div></div>
-            <span style="color:#ff3333;font-size:0.74em;font-weight:700;width:68px;text-align:right;flex-shrink:0;">▼ -2.39%</span>
-        </div>
-        <div class="sector-row">
-            <span class="s-name">AUTO</span>
-            <div class="s-bar-bg"><div style="background:#ff3333;height:5px;width:70.28px;border-radius:2px;"></div></div>
-            <span style="color:#ff3333;font-size:0.74em;font-weight:700;width:68px;text-align:right;flex-shrink:0;">▼ -2.51%</span>
-        </div>
-        <div class="sector-row">
-            <span class="s-name">BANKING</span>
-            <div class="s-bar-bg"><div style="background:#ff3333;height:5px;width:72.24000000000001px;border-radius:2px;"></div></div>
-            <span style="color:#ff3333;font-size:0.74em;font-weight:700;width:68px;text-align:right;flex-shrink:0;">▼ -2.58%</span>
-        </div>
-        </div>
-        <div class="inner-grid">
-            <div class="inner-cell">
-                <div class="inner-head">MARKET BREADTH</div>
-                <div class="data-row"><span class="lbl">ADVANCES</span><span style="color:#00cc44;font-weight:700;font-size:1.1em;">259</span></div>
-                <div class="data-row"><span class="lbl">DECLINES</span><span style="color:#ff3333;font-weight:700;font-size:1.1em;">2,243</span></div>
-                <div class="data-row"><span class="lbl">UNCHANGED</span><span style="color:#555;font-weight:700;">41</span></div>
-                <div class="data-row nb"><span class="lbl">A/D RATIO</span><span style="color:#ff3333;font-weight:700;">0.12</span></div>
+        <div class="split-col">
+            <span class="split-title">DELIVERY &amp; LEADERS</span>
+            <div class="dt" style="border:none;"><span class="dt-lbl">AVG DELIVERY</span><span class="dt-val" style="color:#22c55e;">61.0%</span></div>
+            <div class="bar-track"><div class="bar-fill" style="width:61.0%;background:#22c55e;"></div></div>
+            <div style="font-size:0.61em;color:#2a2a2a;line-height:2.1;margin-top:4px;">
+                <div>▲ <span style="color:#22c55e">PHARMA</span>&nbsp;-0.32%  ·  <span style="color:#22c55e">IT</span>&nbsp;-0.37%  ·  <span style="color:#22c55e">TELECOM</span>&nbsp;-0.51%</div>
+                <div>▼ <span style="color:#ef4444">BANKING</span>&nbsp;-2.58%  ·  <span style="color:#ef4444">AUTO</span>&nbsp;-2.51%  ·  <span style="color:#ef4444">FINANCE</span>&nbsp;-2.39%</div>
             </div>
-            <div class="inner-cell">
-                <div class="inner-head">DELIVERY &amp; LEADERS</div>
-                <div class="data-row"><span class="lbl">AVG DELIVERY</span><span style="color:#00cc44;font-weight:700;font-size:1.1em;">61.0%</span></div>
-                <div style="font-size:0.72em;margin-top:8px;line-height:2.1;">
-                    <div>▲ <span style="color:#00cc44">PHARMA</span>(-0.32%) · <span style="color:#00cc44">IT</span>(-0.37%) · <span style="color:#00cc44">TELECOM</span>(-0.51%)</div>
-                    <div>▼ <span style="color:#ff3333">BANKING</span>(-2.58%) · <span style="color:#ff3333">AUTO</span>(-2.51%) · <span style="color:#ff3333">FINANCE</span>(-2.39%)</div>
-                </div>
-            </div>
-        </div>
-        <div class="hint-box">
-            IT + Pharma lead = RISK-OFF — Defensive rotation<br>
-            Auto + Metal + Energy lead = RISK-ON — Cyclicals<br>
-            Banking lead = liquidity positive, rate cut expected<br>
-            A/D &gt; 2 = broad rally · A/D &lt; 0.7 = broad selloff
-        </div>
-    </div>
-    
-    <div class="card">
-        <div class="card-head">M7 — LEVERAGE &amp; RISK METER <span class="badge">F&O STRESS</span></div>
-        <div class="verdict-box" style="border-color:#00cc44;">
-            <div class="verdict-lbl">MARKET RISK LEVEL</div>
-            <div class="verdict-val" style="color:#00cc44;">NORMAL</div>
-            <div class="verdict-detail">1 stocks in ban. Leverage within normal range.</div>
-        </div>
-        <div class="inner-grid">
-            <div class="inner-cell">
-                <div class="inner-head">F&amp;O BAN LIST</div>
-                <div style="font-size:2.8em;font-weight:700;color:#00cc44;line-height:1;margin:6px 0 3px 0;">1</div>
-                <div style="font-size:0.62em;color:#444;letter-spacing:1px;margin-bottom:8px;">STOCKS IN BAN · 30-MAR-2026</div>
-                <div style="font-size:0.67em;color:#222;line-height:1.9;">
-                    0-3 = normal · 3-8 = watch<br>8+ = elevated risk
-                </div>
-            </div>
-            <div class="inner-cell">
-                <div class="inner-head">FII L/S RATIO</div>
-                <div style="font-size:2.4em;font-weight:700;color:#00cc44;line-height:1;margin:6px 0 6px 0;">1.21</div>
-                <div class="pill" style="color:#00cc44;border-color:#00cc44;margin-bottom:8px;">FII NEUTRAL</div>
-                <div style="font-size:0.67em;color:#222;line-height:1.9;">
-                    &gt;1.3 = bullish · &lt;0.8 = bearish
-                </div>
-            </div>
-        </div>
-        <div class="inner-grid" style="margin-top:1px;">
-            <div class="inner-cell">
-                <div class="inner-head">FII INDEX FUTURES (contracts)</div>
-                <div class="data-row"><span class="lbl">LONG</span><span style="color:#00cc44;font-weight:700;">48,853</span></div>
-                <div class="data-row"><span class="lbl">SHORT</span><span style="color:#ff3333;font-weight:700;">286,979</span></div>
-                <div class="data-row nb"><span class="lbl" style="color:#aaa;font-weight:700;">NET</span><span style="color:#ff3333;font-weight:700;">-238,126</span></div>
-            </div>
-            <div class="inner-cell">
-                <div class="inner-head">FII STOCK FUTURES (contracts)</div>
-                <div class="data-row"><span class="lbl">LONG</span><span style="color:#00cc44;font-weight:700;">4,153,709</span></div>
-                <div class="data-row"><span class="lbl">SHORT</span><span style="color:#ff3333;font-weight:700;">3,172,832</span></div>
-                <div class="data-row nb"><span class="lbl" style="color:#aaa;font-weight:700;">NET</span><span style="color:#00cc44;font-weight:700;">+980,877</span></div>
-            </div>
-        </div>
-        <div style="margin-top:10px;">
-            <div class="inner-head" style="margin-bottom:6px;">STOCKS IN F&amp;O BAN</div>
-            <div style="min-height:22px;line-height:2.2;">
-                <span class="ban-pill">SAIL</span>
-            </div>
-        </div>
-        <div class="hint-box">
-            FII L/S &lt; 0.7 = heavy short = crash risk elevated<br>
-            FII L/S &gt; 1.5 = heavily long = strong market support<br>
-            Ban 8+ stocks = high leverage / concentration risk<br>
-            <span style="color:#111;">Data: 28 MAR 2026</span>
         </div>
     </div>
 </div>
 
-<div id="footer">
-    <span>QUANTIS MARKET INTELLIGENCE · M1 + M4 + M7 · SOURCE: NSE INDIA</span>
+<!-- M6 -->
+<div class="card">
+    <div class="card-label">M6 — INSTITUTIONAL CONVICTION <span class="card-tag">5-DAY FLOWS</span></div>
+    <div class="signal-chip" style="border-left-color:#ff9944;">
+        <span class="chip-sub">CONVICTION TREND</span>
+        <span class="chip-verdict" style="color:#ff9944;">DII Absorbing</span>
+        <span class="chip-detail">DII vs FII 5-day net positioning</span>
+    </div>
+    <div>
+        <div style="font-size:0.56em;color:#252525;letter-spacing:2px;margin-bottom:10px;">5-DAY NET FLOWS</div>
+        <div style="margin-bottom:10px;">
+            <div class="dt"><span class="dt-lbl">DII 5-DAY NET</span><span class="dt-val" style="color:#22c55e;">+₹3,566 Cr</span></div>
+            <div class="bar-track"><div class="bar-fill" style="width:82%;background:#22c55e;"></div></div>
+        </div>
+        <div>
+            <div class="dt"><span class="dt-lbl">FII 5-DAY NET</span><span class="dt-val" style="color:#ef4444;">₹4,367 Cr</span></div>
+            <div class="bar-track"><div class="bar-fill" style="width:100%;background:#ef4444;"></div></div>
+        </div>
+    </div>
+    <div class="hint">
+        DII buy + FII sell = DII absorbing exits<br>
+        Both buying = strong rally support<br>
+        DII accelerating = strong conviction
+    </div>
+</div>
+
+<!-- M7 -->
+<div class="card">
+    <div class="card-label">M7 — LEVERAGE &amp; RISK METER <span class="card-tag">F&amp;O STRESS</span></div>
+    <div class="signal-chip" style="border-left-color:#00cc44;">
+        <span class="chip-sub">MARKET RISK LEVEL</span>
+        <span class="chip-verdict" style="color:#00cc44;">NORMAL</span>
+        <span class="chip-detail">1 stocks in ban. Leverage within normal range.</span>
+    </div>
+    <div class="split">
+        <div class="split-col">
+            <span class="split-title">F&amp;O BAN</span>
+            <div class="big-num" style="color:#00cc44;">1</div>
+            <div class="big-sub">STOCKS IN BAN</div>
+            <div class="big-sub">30-MAR-2026</div>
+        </div>
+        <div class="split-col">
+            <span class="split-title">FII L/S RATIO</span>
+            <div class="big-num" style="color:#22c55e;">1.21</div>
+            <div class="big-sub">FII NEUTRAL</div>
+            <div class="ratio-track">
+                <div class="ratio-marker" style="left:40%;background:#22c55e;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="split">
+        <div class="split-col">
+            <span class="split-title">INDEX FUTURES</span>
+            <div class="dt"><span class="dt-lbl">LONG</span><span class="dt-val" style="color:#22c55e;">48,853</span></div>
+            <div class="dt" style="border:none;"><span class="dt-lbl">SHORT</span><span class="dt-val" style="color:#ef4444;">286,979</span></div>
+        </div>
+        <div class="split-col">
+            <span class="split-title">STOCK FUTURES</span>
+            <div class="dt"><span class="dt-lbl">LONG</span><span class="dt-val" style="color:#22c55e;">4,153,709</span></div>
+            <div class="dt" style="border:none;"><span class="dt-lbl">SHORT</span><span class="dt-val" style="color:#ef4444;">3,172,832</span></div>
+        </div>
+    </div>
+    <div>
+        <div style="font-size:0.56em;color:#252525;letter-spacing:2px;margin-bottom:6px;">STOCKS IN BAN</div>
+        <div style="min-height:22px;line-height:2.4;">
+            <span class="ban-pill">SAIL</span>
+        </div>
+    </div>
+</div>
+
+<!-- M8 -->
+<div class="card">
+    <div class="card-label">M8 — PROMOTER CONFIDENCE <span class="card-tag">INSIDER TRENDS</span></div>
+    <div class="signal-chip" style="border-left-color:#00cc44;">
+        <span class="chip-sub">INSIDER SENTIMENT</span>
+        <span class="chip-verdict" style="color:#00cc44;">Bottom Signal (Cluster)</span>
+        <span class="chip-detail">Promoter bulk deal proxy</span>
+    </div>
+    <div class="split">
+        <div class="split-col" style="text-align:center;padding:12px 8px;background:#030303;border:1px solid #111;">
+            <div style="font-size:0.56em;color:#22c55e;letter-spacing:2px;margin-bottom:6px;">▲ BUYS</div>
+            <div class="big-num" style="color:#22c55e;">3</div>
+            <div class="big-sub">transactions</div>
+            <div style="font-size:0.72em;color:#155724;margin-top:6px;">3 cos.</div>
+        </div>
+        <div class="split-col" style="text-align:center;padding:12px 8px;background:#030303;border:1px solid #111;">
+            <div style="font-size:0.56em;color:#ef4444;letter-spacing:2px;margin-bottom:6px;">▼ SELLS</div>
+            <div class="big-num" style="color:#ef4444;">1</div>
+            <div class="big-sub">transactions</div>
+            <div style="font-size:0.72em;color:#6e1f1f;margin-top:6px;">&nbsp;</div>
+        </div>
+    </div>
+    <div>
+        <div style="font-size:0.56em;color:#252525;letter-spacing:2px;margin-bottom:6px;">BUY / SELL SPLIT</div>
+        <div class="vs-bar" style="height:7px;">
+            <div class="vs-g" style="width:75%;"></div>
+            <div class="vs-r"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:0.58em;color:#252525;margin-top:4px;">
+            <span>75% buys</span><span>25% sells</span>
+        </div>
+    </div>
+    <div class="hint">
+        3+ companies buying = bottom signal<br>
+        Sells &gt; Buys = distribution phase<br>
+        Buys &gt; Sells = insider accumulation
+    </div>
+</div>
+
+</div><!-- /dash-grid -->
+
+<div id="site-footer">
+    <span>QUANTIS MARKET INTELLIGENCE · M1 · M4 · M6 · M7 · M8 · SOURCE: NSE INDIA</span>
     <span>For informational purposes only · Not investment advice</span>
 </div>
 
+<div id="bookmark-panel">
+    <h3>SAVED REPORTS</h3>
+    <ul id="bookmark-list"></ul>
+</div>
+<script>
+    function togglePanel() {
+        const p = document.getElementById('bookmark-panel');
+        p.style.display = p.style.display === 'none' ? 'block' : 'none';
+    }
+    function showBookmarks() {
+        let bm = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+        document.getElementById('bookmark-list').innerHTML = bm.length === 0
+            ? '<li style="color:#333;cursor:default;">No saved reports</li>'
+            : bm.map((b,i) => `<li>${b}</li>`).join('');
+    }
+    window.onload = function() { showBookmarks(); };
+    function toggleMenu() {
+        document.getElementById('nav-drawer').classList.toggle('open');
+        document.getElementById('nav-overlay').classList.toggle('open');
+    }
+</script>
 </body>
 </html>

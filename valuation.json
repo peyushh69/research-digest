@@ -1,0 +1,15 @@
+{
+  "_comment": "Yeh file quarterly update karo — NSE/Moneycontrol se values copy karo",
+  "_sources": {
+    "nifty_pe": "nseindia.com/market-data/live-equity-market → Nifty 50 → P/E",
+    "nifty_pb": "nseindia.com/market-data/live-equity-market → Nifty 50 → P/B",
+    "eps_growth_yoy": "moneycontrol.com → Nifty 50 EPS → YoY growth %",
+    "market_cap_gdp": "rbi.org.in ya economictimes.com → Market Cap to GDP ratio"
+  },
+  "nifty_pe": 21.4,
+  "nifty_pb": 3.2,
+  "eps_growth_yoy": 12.5,
+  "market_cap_gdp": 87.3,
+  "date": "Mar 2026",
+  "last_updated": "28 Mar 2026"
+}

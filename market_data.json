@@ -1,39 +1,75 @@
 {
   "m1": {
     "cash": {
-      "buy": 0,
-      "sell": 0,
-      "net": 0
+      "buy": 20486.39,
+      "sell": 24853.69,
+      "net": -4367.3
     },
     "dii_cash": {
-      "buy": 0,
-      "sell": 0,
-      "net": 0
+      "buy": 37579.14,
+      "sell": 34012.99,
+      "net": 3566.15
     },
     "index_fut": {
-      "long": 0,
-      "short": 0,
-      "net": 0
+      "long": 18833.86,
+      "short": 25164.26,
+      "net": -6330.399999999998
     },
     "stock_fut": {
-      "long": 0,
-      "short": 0,
-      "net": 0
+      "long": 127605.47,
+      "short": 131023.89,
+      "net": -3418.4199999999983
     },
     "index_opt": {
-      "net": 0
+      "net": 3638.2099999999627
     },
     "stock_opt": {
-      "net": 0
+      "net": -3166.5
     },
-    "date": "28 MAR 2026",
-    "verdict": "BUYING",
-    "verdict_col": "#00cc44",
-    "verdict_detail": "FII cash buy kar raha hai. Add fii_stats.xls for complete picture.",
-    "risk": "LOW",
-    "cash_dir": "BUY",
-    "fut_dir": "NO DATA",
-    "total_net": 0
+    "date": "27-MAR-2026",
+    "verdict": "REAL EXIT",
+    "verdict_col": "#ff3333",
+    "verdict_detail": "Cash sell + futures SHORT \u2014 Genuine bearish exit. Avoid fresh longs.",
+    "risk": "HIGH",
+    "cash_dir": "SELL",
+    "fut_dir": "SHORT",
+    "total_net": -10477.910000000033
+  },
+  "m2": {
+    "pcr": 0.88,
+    "pcr_signal": "NEUTRAL",
+    "pcr_col": "#888888",
+    "nifty_put_oi": 13169513.0,
+    "nifty_call_oi": 15035572.0,
+    "top_put_strike": 0,
+    "top_call_strike": 0,
+    "signal": "NEUTRAL",
+    "signal_col": "#888888",
+    "date": "29 MAR 2026",
+    "detail": "PCR 0.88 \u2014 Balanced put-call positioning."
+  },
+  "m3": {
+    "nifty_close": 21.51,
+    "nifty_prev": 21.91,
+    "nifty_chg": -0.4,
+    "nifty_chg_pct": -1.83,
+    "nifty_high": 22.45,
+    "nifty_low": 21.41,
+    "nifty_open": 22.45,
+    "banknifty_close": 52.77,
+    "banknifty_chg_pct": -2.4,
+    "nifty_midcap_close": 0.0,
+    "nifty_midcap_chg_pct": 0.0,
+    "nifty_smallcap_close": 38.55,
+    "vix_close": 0.0,
+    "vix_signal": "NO DATA",
+    "vix_col": "#888888",
+    "trend": "STRONG DOWNTREND",
+    "trend_col": "#ef4444",
+    "signal": "STRONG DOWNTREND",
+    "signal_col": "#ef4444",
+    "date": "29 MAR 2026",
+    "detail": "Nifty -1.83% \u2014 Broad weakness. Defensive mode."
   },
   "m4": {
     "sectors": {
@@ -83,7 +119,15 @@
     "declines": 2243,
     "unchanged": 41,
     "avg_delivery": 61.0,
-    "date": "28 MAR 2026"
+    "date": "29 MAR 2026"
+  },
+  "m6": {
+    "dii_5d_net": 3566.15,
+    "fii_5d_net": -4367.3,
+    "dii_trend": "FLAT",
+    "signal": "DII Absorbing",
+    "signal_col": "#ff9944",
+    "date": "29 MAR 2026"
   },
   "m7": {
     "ban_count": 1,
@@ -100,7 +144,15 @@
     "risk_level": "NORMAL",
     "risk_col": "#00cc44",
     "risk_detail": "1 stocks in ban. Leverage within normal range.",
-    "date": "28 MAR 2026"
+    "date": "29 MAR 2026"
   },
-  "date": "28 MAR 2026"
+  "m8": {
+    "buy_count": 3,
+    "sell_count": 1,
+    "companies": 3,
+    "signal": "Bottom Signal (Cluster)",
+    "signal_col": "#00cc44",
+    "date": "29 MAR 2026"
+  },
+  "date": "29 MAR 2026"
 }
